@@ -24,15 +24,20 @@ cmake ..
 make
 ```
 
-Run the program from the project root, run:
+From the project root, execute:
+
 ```bash
 ./build/cgpa
 ```
-
 ## Loading from file
 
-Any file to be loaded must be put in /data/*
-They must follow this format
+The program automatically searches the current directory and then `data/`.
+
+To use this feature, place course files in the `data/` directory.
+
+Courses can also be entered manually through the interactive menu.
+
+Files must follow this format:
 
 ```txt
 SYSC2006 0.5 A+

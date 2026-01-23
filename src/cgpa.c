@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define VERSION "1.2.5"
+
 static const grade_map_t grade_map[] = {{"A+", 12.0f}, {"A", 11.0f}, {"A-", 10.0f}, {"B+", 9.0f},
                                         {"B", 8.0f},   {"B-", 7.0f}, {"C+", 6.0f},  {"C", 5.0f},
                                         {"C-", 4.0f},  {"D+", 3.0f}, {"D", 2.0f},   {"D-", 1.0f},
@@ -32,12 +34,13 @@ static const size_t GRADE_MAP_LEN = sizeof grade_map / sizeof grade_map[0];
 void print_menu(void) {
     printf(
         "\n =============WELCOME===============\n"
-        "  -Welcome to the CGPA Calculator\n"
-        "  -Please follow all instructions\n"
-        "  -Currently only compatible with the system\n"
-        "   used by Carleton University\n"
-        "  -V1.2.4\n"
-        " =========CGPA CALCULATOR===========");
+        "  -  Welcome to the CGPA Calculator\n"
+        "  -  Please follow all instructions\n"
+        "  -  Currently only compatible with the system\n"
+        "     used by Carleton University\n"
+        "  -  Version %s\n"
+        " =========CGPA CALCULATOR===========",
+        VERSION);
 
     printf(
         "\n\n  1. Add a course\n"
