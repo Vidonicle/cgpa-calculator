@@ -13,6 +13,7 @@
  ***********************************/
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -25,7 +26,7 @@
 #define MENU_BUF_LEN 64            // 62 chars + '\n' + '\0'
 #define FILENAME_LEN MENU_BUF_LEN  // Length of filename
 
-int main() {
+int main(int argc, char *argv[]) {
     char course_code_buf[COURSE_CODE_BUF_LEN];
     char course_weight_buf[COURSE_WEIGHT_BUF_LEN];
     float course_weight = 0.0f;
@@ -63,6 +64,23 @@ int main() {
             }
 
             FILE *fptr = fopen(filename, "r");
+
+            // Locate file in correct directory
+            if (!fptr) {
+                // Try from data/ relative to executable
+                char exec_path[PATH_MAX];
+                if (realpath(argv[0], exec_path)) {
+                    char *slash = strrchr(exec_path, '/');
+                    if (slash) {
+                        *slash = '\0';  // strip executable name
+                    }
+
+                    char pathbuf[PATH_MAX];
+                    snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, filename);
+
+                    fptr = fopen(pathbuf, "r");
+                }
+            }
 
             if (!fptr) {
                 ui_print_error(UI_ERR_FILE_NOT_FOUND);

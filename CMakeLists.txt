@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.10)
+project(cpga_calculator C)
+
+set(CMAKE_C_STANDARD 11)
+
+include_directories(include)
+
+add_executable(cgpa
+    src/main.c
+    src/cgpa.c
+    src/ui_errors.c
+)

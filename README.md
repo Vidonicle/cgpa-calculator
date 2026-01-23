@@ -6,6 +6,7 @@ Calculates CGPA based on course letter grades and course weights using the
 Carleton University grading scale.
 
 ## Features
+
 - Add courses with code, weight, and letter grade
 - Automatically sorts courses by course code
 - Displays total credits earned, credits completed, and CGPA
@@ -13,18 +14,34 @@ Carleton University grading scale.
 - Linked-list based storage
 
 ## Build and Usage
-Requires a C compiler (GCC or Clang).
+
+Requires a C compiler (GCC or Clang) and CMake.
 
 ```bash
-gcc -Wall -Wextra -std=c11 main.c cgpa.c ui_errors.c -o cgpa
+mkdir build
+cd build
+cmake ..
+make
 ```
 
-Run the program from the terminal:
+Run the program from the project root, run:
 ```bash
-./cgpa
+./build/cgpa
+```
+
+## Loading from file
+
+Any file to be loaded must be put in /data/*
+They must follow this format
+
+```txt
+SYSC2006 0.5 A+
+CCDP2100 0.5 A
+MATH1005 0.5 A-
 ```
 
 ## Notes
+
 - Intended for personal and educational use
 - Grading scale is hard-coded for Carleton University
 - This project is not affiliated with Carleton University in any way
