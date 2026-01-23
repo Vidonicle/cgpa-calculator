@@ -1,3 +1,0 @@
-/home/arulrao/Projects/C/cgpa_calculator/build/CMakeFiles/cgpa.dir
-/home/arulrao/Projects/C/cgpa_calculator/build/CMakeFiles/edit_cache.dir
-/home/arulrao/Projects/C/cgpa_calculator/build/CMakeFiles/rebuild_cache.dir

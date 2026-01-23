@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/cpga.dir/link.d CMakeFiles/cpga.dir/src/main.c.o CMakeFiles/cpga.dir/src/cgpa.c.o CMakeFiles/cpga.dir/src/ui_errors.c.o -o cpga

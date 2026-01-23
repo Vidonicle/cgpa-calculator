@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/cgpa.dir/link.d CMakeFiles/cgpa.dir/src/main.c.o CMakeFiles/cgpa.dir/src/cgpa.c.o CMakeFiles/cgpa.dir/src/ui_errors.c.o -o cgpa
