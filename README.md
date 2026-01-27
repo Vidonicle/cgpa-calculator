@@ -1,4 +1,4 @@
-# CGPA Calculator
+# cgpa-calculator
 
 A simple command-line CGPA calculator written in C.
 
