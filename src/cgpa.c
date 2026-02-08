@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VERSION "1.2.5"
+#define VERSION "1.3.2"
 
 static const grade_map_t grade_map[] = {{"A+", 12.0f}, {"A", 11.0f}, {"A-", 10.0f}, {"B+", 9.0f},
                                         {"B", 8.0f},   {"B-", 7.0f}, {"C+", 6.0f},  {"C", 5.0f},
@@ -208,11 +208,16 @@ void display_grades(coursenode_t *courses) {
         accum_weight += curr->course_weight;
     }
 
+    float cgpa = accum_weight > 0 ? accum_credits / accum_weight : 0.0f;
+    float gpa = cgpa > 1 ? (cgpa + 1) / 3 : 2 * cgpa / 3;
+
     printf(
         "\n\n  Total Credits Earned: %4.2f"
         "\n  Total Credits Completed: %4.2f"
-        "\n\n  Current CGPA: %4.2f\n" SEPERATOR2,
-        accum_credits, accum_weight, accum_weight > 0 ? accum_credits / accum_weight : 0.0f);
+        "\n"
+        "\n  Current CGPA (12.00 scale): %4.2f"
+        "\n  Estimated GPA (4.00 scale): %4.2f\n" SEPERATOR2,
+        accum_credits, accum_weight, cgpa, gpa);
 }
 
 // Check for existing courses

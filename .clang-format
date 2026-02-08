@@ -1,8 +1,0 @@
-BasedOnStyle: Google
-IndentWidth: 4
-TabWidth: 4
-UseTab: Never
-PointerAlignment: Right
-ColumnLimit: 100
-AllowShortIfStatementsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: None
