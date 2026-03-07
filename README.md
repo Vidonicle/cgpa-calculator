@@ -12,6 +12,7 @@ Carleton University grading scale.
 - Displays total credits earned, credits completed, and CGPA
 - Input validation and error handling
 - Linked-list based storage
+- Sentinel node to keep addition and traversal easier
 
 ## Build and Usage
 
@@ -29,6 +30,15 @@ From the project root, execute:
 ```bash
 ./build/cgpa
 ```
+
+or:
+
+```bash
+./build/cgpa ./data/courses
+```
+
+to directly load a file
+
 ## Loading from file
 
 The program automatically searches the current directory and then `data/`.
