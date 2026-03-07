@@ -123,11 +123,11 @@ bool load_from_file(list_courses_t *courses, FILE *fptr) {
 
         // Default values
         char course_code[COURSE_CODE_BUF_LEN] = {0};
-        float course_weight = 1.0f;
+        float course_weight = 0.0f;
         char letter_grade[LETTER_GRADE_BUF_LEN] = "F";
 
         char *tok_entptr;
-        char *tok = strtok_r(line, " \t\n", &tok_entptr);
+        char *tok = strtok_r(line, " \t\n,", &tok_entptr);
 
         // Skip if course code is not present
         if (!tok)
@@ -138,7 +138,7 @@ bool load_from_file(list_courses_t *courses, FILE *fptr) {
         strcpy(course_code, tok);
 
         // Get other fields for course
-        while ((tok = strtok_r(NULL, " \t\n", &tok_entptr)) != NULL) {
+        while ((tok = strtok_r(NULL, " \t\n,", &tok_entptr)) != NULL) {
             // Get course weight
             char *w_endptr;
             float weight = strtof(tok, &w_endptr);
