@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VERSION "1.3.2"
+#define VERSION "1.4.0"
 
 static const grade_map_t grade_map[] = {{"A+", 12.0f}, {"A", 11.0f}, {"A-", 10.0f}, {"B+", 9.0f},
                                         {"B", 8.0f},   {"B-", 7.0f}, {"C+", 6.0f},  {"C", 5.0f},
@@ -49,25 +49,20 @@ void print_menu(void) {
         "  %d. Display Courses and CGPA\n"
         "  %d. Exit\n\n"
         "  Enter your selection (1-%d): ",
-        MENU_DISPLAY, MENU_EXIT, MENU_COUNT);
+        MENU_DISPLAY, MENU_EXIT, MENU_EXIT);
 }
 
-// Fetch course from list
-coursenode_t *fetch_node(coursenode_t *courses, const char *course_code) {
-    coursenode_t *curr = courses;
+void init_list(list_courses_t *list) {
+    memset(&(list->sentinel), 0, sizeof(list->sentinel));
 
-    while (curr) {
-        if (strcmp(course_code, curr->course_code) == 0)
-            return curr;
+    list->sentinel.next = &(list->sentinel);
+    list->sentinel.prev = &(list->sentinel);
 
-        curr = curr->next;
-    }
-
-    return NULL;
+    list->size = 0;
 }
 
 // Add course in alphanumerical order
-bool add_course(coursenode_t **courses, const char *course_code, float course_weight,
+bool add_course(list_courses_t *courses, const char *course_code, float course_weight,
                 const char *letter_grade) {
     coursenode_t *new_node = malloc(sizeof(coursenode_t));
     if (!new_node)
@@ -78,61 +73,47 @@ bool add_course(coursenode_t **courses, const char *course_code, float course_we
     strcpy(new_node->letter_grade, letter_grade);
     new_node->credits_earned = earned_credits(course_weight, letter_grade);
     new_node->next = NULL;
+    new_node->prev = NULL;
 
-    if (*courses == NULL) {
-        *courses = new_node;
+    coursenode_t *curr = courses->sentinel.next;
 
-        return true;
-    }
-
-    coursenode_t *prev = NULL;
-    coursenode_t *curr = *courses;
-
-    while (curr && strcmp(curr->course_code, course_code) < 0) {
-        prev = curr;
+    while (curr != &(courses->sentinel) && strcmp(curr->course_code, course_code) < 0) {
         curr = curr->next;
     }
 
-    if (prev == NULL) {
-        new_node->next = *courses;
-        *courses = new_node;
-    } else {
-        new_node->next = curr;
-        prev->next = new_node;
-    }
+    new_node->next = curr;
+    new_node->prev = curr->prev;
+
+    curr->prev->next = new_node;
+    curr->prev = new_node;
+
+    courses->size++;
 
     return true;
 }
 
 // Delete node given by course code
-void delete_course(coursenode_t **courses, const char *course_code) {
-    coursenode_t *curr = *courses;
-    coursenode_t *prev = NULL;
+void delete_course(list_courses_t *courses, const char *course_code) {
+    coursenode_t *to_delete = fetch_node(courses, course_code);
+    if (!to_delete)
+        return;
 
-    while (curr) {
-        if (strcmp(curr->course_code, course_code) == 0) {
-            if (prev)
-                prev->next = curr->next;
-            else
-                *courses = curr->next;
+    to_delete->prev->next = to_delete->next;
+    to_delete->next->prev = to_delete->prev;
 
-            free(curr);
-            return;
-        }
+    free(to_delete);
 
-        prev = curr;
-        curr = curr->next;
-    }
+    courses->size--;
 }
 
-bool edit_course(coursenode_t **courses, const char *course_code_old, const char *course_code_new,
+bool edit_course(list_courses_t *courses, const char *course_code_old, const char *course_code_new,
                  float course_weight_new, const char *letter_grade_new) {
     delete_course(courses, course_code_old);
     return add_course(courses, course_code_new, course_weight_new, letter_grade_new);
 }
 
 // Load courses from file
-bool load_from_file(coursenode_t **courses, FILE *fptr) {
+bool load_from_file(list_courses_t *courses, FILE *fptr) {
     char line[256];
 
     // Loop through each line of file
@@ -180,6 +161,21 @@ bool load_from_file(coursenode_t **courses, FILE *fptr) {
     return true;
 }
 
+// Fetch course from list
+coursenode_t *fetch_node(list_courses_t *courses, const char *course_code) {
+    coursenode_t *curr = courses->sentinel.next;
+
+    while (curr != &(courses->sentinel)) {
+        if (strcmp(curr->course_code, course_code) == 0) {
+            return curr;
+        }
+
+        curr = curr->next;
+    }
+
+    return NULL;
+}
+
 // Calculate earned credits depending on course weight and letter grade
 float earned_credits(float course_weight, const char *letter_grade) {
     for (size_t i = 0; i < GRADE_MAP_LEN; i++) {
@@ -191,21 +187,25 @@ float earned_credits(float course_weight, const char *letter_grade) {
 }
 
 // Print grades and formats column sections
-void display_grades(coursenode_t *courses) {
+void display_grades(list_courses_t *courses) {
     float accum_credits = 0.0f;
     float accum_weight = 0.0f;
 
-    printf(SEPERATOR1 "  Course Code  Course Weight  Letter Grade  Credits Earned\n");
+    printf(SEPERATOR1 "  Course Code  Weight  Grade  Credits\n");
+    printf(" -------------------------------------\n");
 
-    for (coursenode_t *curr = courses; curr; curr = curr->next) {
-        int grade_w = (curr->letter_grade[1] == '\0') ? 11 : 12;
-        int credit_w = (curr->letter_grade[1] == '\0') ? 16 : 15;
+    int i = 1;
+    for (coursenode_t *curr = courses->sentinel.next; curr != &(courses->sentinel);
+         curr = curr->next) {
+        int grade_w = (curr->letter_grade[1] == '\0') ? 4 : 5;
+        int credit_w = (curr->letter_grade[1] == '\0') ? 9 : 8;
 
         printf("  %-12s %4.2f %*s %*.2f\n", curr->course_code, curr->course_weight, grade_w,
                curr->letter_grade, credit_w, curr->credits_earned);
 
         accum_credits += curr->credits_earned;
         accum_weight += curr->course_weight;
+        i++;
     }
 
     float cgpa = accum_weight > 0 ? accum_credits / accum_weight : 0.0f;
@@ -221,10 +221,10 @@ void display_grades(coursenode_t *courses) {
 }
 
 // Check for existing courses
-bool check_courses(coursenode_t *courses, const char *course_code) {
-    coursenode_t *curr = courses;
+bool check_courses(list_courses_t *courses, const char *course_code) {
+    coursenode_t *curr = courses->sentinel.next;
 
-    while (curr) {
+    while (curr != &(courses->sentinel)) {
         if (strcmp(curr->course_code, course_code) == 0)
             return true;
 
@@ -266,11 +266,12 @@ bool validate_letter_grade(const char *letter_grade) {
 }
 
 // Deconstruct and free list
-void deconstruct(coursenode_t *courses) {
-    while (courses) {
-        coursenode_t *next = courses->next;
-        free(courses);
-        courses = next;
+void teardown(list_courses_t *courses) {
+    coursenode_t *curr = courses->sentinel.next;
+    while (curr != &(courses->sentinel)) {
+        coursenode_t *next = curr->next;
+        free(curr);
+        curr = next;
     }
 }
 

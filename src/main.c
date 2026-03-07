@@ -13,6 +13,7 @@
  ***********************************/
 
 #include <ctype.h>
+#include <getopt.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -34,71 +35,89 @@ int main(int argc, char *argv[]) {
     char filename[FILENAME_LEN];
     char menu_buf[MENU_BUF_LEN];
 
-    coursenode_t *courses = NULL;
+    list_courses_t courses;
+    init_list(&courses);
 
     bool load_file = true;
 
-    printf(SEPERATOR1 "\n  Would you like to load courses from file? (Y/n): ");
+    if (argc == 2) {
+        FILE *fptr = fopen(argv[1], "r");
 
-    fgets(menu_buf, sizeof(menu_buf), stdin);
-    if (ui_handle_long_input(menu_buf))
-        load_file = false;
-    menu_buf[strcspn(menu_buf, "\n")] = '\0';
-    menu_buf[0] = (char)tolower((unsigned char)menu_buf[0]);
-
-    if (load_file && menu_buf[0] != 'n') {
-        // File parsing loop
-        do {
-            printf(SEPERATOR1 "\n  Please enter the name of your file (.txt): ");
-
-            fgets(filename, sizeof(filename), stdin);
-            if (ui_handle_long_input(filename))
-                break;
-            filename[strcspn(filename, "\n")] = '\0';
-
-            const char *ext = strrchr(filename, '.');
-
-            if (!ext || strcmp(ext, ".txt") != 0) {
-                ui_print_error(UI_ERR_FILE_TYPE);
-                break;
-            }
-
-            FILE *fptr = fopen(filename, "r");
-
-            // Locate file in correct directory
-            if (!fptr) {
-                // Try from data/ relative to executable
-                char exec_path[PATH_MAX];
-                if (realpath(argv[0], exec_path)) {
-                    char *slash = strrchr(exec_path, '/');
-                    if (slash) {
-                        *slash = '\0';  // strip executable name
-                    }
-
-                    char pathbuf[PATH_MAX];
-                    snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, filename);
-
-                    fptr = fopen(pathbuf, "r");
-                }
-            }
-
-            if (!fptr) {
-                ui_print_error(UI_ERR_FILE_NOT_FOUND);
-                break;
-            }
-
+        if (!fptr) {
+            ui_print_error(UI_ERR_FILE_NOT_FOUND);
+        } else {
             if (!load_from_file(&courses, fptr)) {
                 ui_print_error(UI_ERR_OOM);
-                deconstruct(courses);
+                teardown(&courses);
                 return EXIT_FAILURE;
             } else {
                 printf(SEPERATOR1 "\n  Load from file successful!\n");
                 fclose(fptr);
             }
+        }
 
-        } while (0);
+    } else {
+        printf(SEPERATOR1 "\n  Would you like to load courses from file? (Y/n): ");
+
+        fgets(menu_buf, sizeof(menu_buf), stdin);
+        if (ui_handle_long_input(menu_buf))
+            load_file = false;
+        menu_buf[strcspn(menu_buf, "\n")] = '\0';
+        menu_buf[0] = (char)tolower((unsigned char)menu_buf[0]);
+
+        if (load_file && menu_buf[0] != 'n') {
+            // File parsing loop
+            do {
+                printf(SEPERATOR1 "\n  Please enter the name of your file (.txt): ");
+
+                fgets(filename, sizeof(filename), stdin);
+                if (ui_handle_long_input(filename))
+                    break;
+                filename[strcspn(filename, "\n")] = '\0';
+
+                const char *ext = strrchr(filename, '.');
+
+                if (!ext || strcmp(ext, ".txt") != 0) {
+                    ui_print_error(UI_ERR_FILE_TYPE);
+                    break;
+                }
+
+                FILE *fptr = fopen(filename, "r");
+
+                // Locate file in correct directory
+                if (!fptr) {
+                    // Try from data / relative to executable
+                    char exec_path[PATH_MAX];
+                    if (realpath(argv[0], exec_path)) {
+                        char *slash = strrchr(exec_path, '/');
+                        if (slash) {
+                            *slash = '\0';  // strip executable name
+                        }
+
+                        char pathbuf[PATH_MAX];
+                        snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, filename);
+
+                        fptr = fopen(pathbuf, "r");
+                    }
+                }
+
+                if (!fptr) {
+                    ui_print_error(UI_ERR_FILE_NOT_FOUND);
+                    break;
+                }
+
+                if (!load_from_file(&courses, fptr)) {
+                    ui_print_error(UI_ERR_OOM);
+                    teardown(&courses);
+                    return EXIT_FAILURE;
+                } else {
+                    printf(SEPERATOR1 "\n  Load from file successful!\n");
+                    fclose(fptr);
+                }
+
+            } while (0);
+        }
     }
-
     // Menu loop
     while (true) {
         print_menu();
@@ -139,7 +158,7 @@ int main(int argc, char *argv[]) {
                         break;
                     }
 
-                    if (check_courses(courses, course_code_buf)) {
+                    if (check_courses(&courses, course_code_buf)) {
                         ui_print_error(UI_ERR_DUPLICATE);
                         break;
                     }
@@ -181,7 +200,7 @@ int main(int argc, char *argv[]) {
 
                     if (!add_course(&courses, course_code_buf, course_weight, letter_grade_buf)) {
                         ui_print_error(UI_ERR_OOM);
-                        deconstruct(courses);
+                        teardown(&courses);
                         return EXIT_FAILURE;
                     } else {
                         printf(SEPERATOR2
@@ -194,7 +213,7 @@ int main(int argc, char *argv[]) {
                 } while (0);
                 break;
             case (MENU_DELETE):
-                if (!courses) {
+                if (courses.size == 0) {
                     ui_print_error(UI_ERR_EMPTY);
                     continue;
                 }
@@ -212,7 +231,7 @@ int main(int argc, char *argv[]) {
                 if (!validate_course_code(course_code_buf)) {
                     ui_print_error(UI_ERR_INVALID_CODE);
                 } else {
-                    if (!check_courses(courses, course_code_buf)) {
+                    if (!check_courses(&courses, course_code_buf)) {
                         ui_print_error(UI_ERR_NOT_FOUND);
                     } else {
                         delete_course(&courses, course_code_buf);
@@ -238,7 +257,7 @@ int main(int argc, char *argv[]) {
                         break;
                     }
 
-                    if (!check_courses(courses, course_code_buf)) {
+                    if (!check_courses(&courses, course_code_buf)) {
                         ui_print_error(UI_ERR_NOT_FOUND);
                         break;
                     }
@@ -246,7 +265,7 @@ int main(int argc, char *argv[]) {
                     char course_code_old[COURSE_CODE_BUF_LEN];
                     strcpy(course_code_old, course_code_buf);
 
-                    coursenode_t *fetched_node = fetch_node(courses, course_code_buf);
+                    coursenode_t *fetched_node = fetch_node(&courses, course_code_buf);
                     float old_weight = fetched_node->course_weight;
                     char old_grade[LETTER_GRADE_BUF_LEN];
                     strcpy(old_grade, fetched_node->letter_grade);
@@ -272,7 +291,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     if (strcmp(course_code_new, course_code_old) != 0 &&
-                        check_courses(courses, course_code_new)) {
+                        check_courses(&courses, course_code_new)) {
                         ui_print_error(UI_ERR_DUPLICATE);
                         break;
                     }
@@ -325,7 +344,7 @@ int main(int argc, char *argv[]) {
                     if (!edit_course(&courses, course_code_old, course_code_new, course_weight_new,
                                      letter_grade_new)) {
                         ui_print_error(UI_ERR_OOM);
-                        deconstruct(courses);
+                        teardown(&courses);
                         return EXIT_FAILURE;
                     }
                     printf(SEPERATOR2
@@ -338,11 +357,11 @@ int main(int argc, char *argv[]) {
                 } while (0);
                 break;
             case (MENU_DISPLAY):
-                display_grades(courses);
+                display_grades(&courses);
                 break;
             case (MENU_EXIT):
                 printf("\n  Goodbye!\n");
-                deconstruct(courses);
+                teardown(&courses);
                 return EXIT_SUCCESS;
                 break;
         }

@@ -31,7 +31,13 @@ typedef struct course {
     float course_weight;
     float credits_earned;
     struct course *next;
+    struct course *prev;
 } coursenode_t;
+
+typedef struct {
+    coursenode_t sentinel;
+    size_t size;
+} list_courses_t;
 
 typedef struct {
     const char *grade;
@@ -52,29 +58,31 @@ typedef enum {
 
 void print_menu(void);
 
-coursenode_t *fetch_node(coursenode_t *courses, const char *course_code);
+void init_list(list_courses_t *list);
 
-bool add_course(coursenode_t **courses, const char *course_code, float course_weight,
+bool add_course(list_courses_t *courses, const char *course_code, float course_weight,
                 const char *letter_grade);
 
-void delete_course(coursenode_t **courses, const char *course_code);
+void delete_course(list_courses_t *courses, const char *course_code);
 
-bool edit_course(coursenode_t **courses, const char *course_code_old, const char *course_code_new,
+bool edit_course(list_courses_t *courses, const char *course_code_old, const char *course_code_new,
                  float course_weight_new, const char *letter_grade_new);
 
-bool load_from_file(coursenode_t **courses, FILE *fptr);
+bool load_from_file(list_courses_t *courses, FILE *fptr);
+
+coursenode_t *fetch_node(list_courses_t *courses, const char *course_code);
 
 float earned_credits(float course_weight, const char *letter_grade);
 
-void display_grades(coursenode_t *courses);
+void display_grades(list_courses_t *courses);
 
-bool check_courses(coursenode_t *courses, const char *course_code);
+bool check_courses(list_courses_t *courses, const char *course_code);
 
 bool validate_course_code(char *course_code);
 
 bool validate_letter_grade(const char *letter_grade);
 
-void deconstruct(coursenode_t *course);
+void teardown(list_courses_t *course);
 
 void flush_stdin(void);
 
