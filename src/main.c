@@ -39,23 +39,20 @@ int main(int argc, char *argv[]) {
     init_list(&courses);
 
     bool load_file = true;
+    FILE *fptr = NULL;
 
     if (argc == 2) {
-        FILE *fptr = fopen(argv[1], "r");
-
-        if (!fptr) {
-            ui_print_error(UI_ERR_FILE_NOT_FOUND);
-        } else {
-            if (!load_from_file(&courses, fptr)) {
-                ui_print_error(UI_ERR_OOM);
-                teardown(&courses);
-                return EXIT_FAILURE;
-            } else {
-                printf(SEPERATOR1 "\n  Load from file successful!\n");
-                fclose(fptr);
+        char exec_path[PATH_MAX];
+        if (realpath(argv[0], exec_path)) {
+            char *slash = strrchr(exec_path, '/');
+            if (slash) {
+                *slash = '\0';  // strip executable name
             }
-        }
 
+            char pathbuf[PATH_MAX];
+            snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, argv[1]);
+            fptr = fopen(pathbuf, "r");
+        }
     } else {
         printf(SEPERATOR1 "\n  Would you like to load courses from file? (Y/n): ");
 
@@ -65,59 +62,53 @@ int main(int argc, char *argv[]) {
         menu_buf[strcspn(menu_buf, "\n")] = '\0';
         menu_buf[0] = (char)tolower((unsigned char)menu_buf[0]);
 
-        if (load_file && menu_buf[0] != 'n') {
+        if (menu_buf[0] == 'n')
+            load_file = false;
+
+        if (load_file) {
             // File parsing loop
             do {
-                printf(SEPERATOR1 "\n  Please enter the name of your file (.txt): ");
+                printf(SEPERATOR1 "\n  Please enter the name of your file: ");
 
                 fgets(filename, sizeof(filename), stdin);
                 if (ui_handle_long_input(filename))
                     break;
                 filename[strcspn(filename, "\n")] = '\0';
 
-                const char *ext = strrchr(filename, '.');
-
-                if (!ext || strcmp(ext, ".txt") != 0) {
-                    ui_print_error(UI_ERR_FILE_TYPE);
-                    break;
-                }
-
-                FILE *fptr = fopen(filename, "r");
-
-                // Locate file in correct directory
-                if (!fptr) {
-                    // Try from data / relative to executable
-                    char exec_path[PATH_MAX];
-                    if (realpath(argv[0], exec_path)) {
-                        char *slash = strrchr(exec_path, '/');
-                        if (slash) {
-                            *slash = '\0';  // strip executable name
-                        }
-
-                        char pathbuf[PATH_MAX];
-                        snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, filename);
-
-                        fptr = fopen(pathbuf, "r");
+                // Locate file in intended folder
+                char exec_path[PATH_MAX];
+                if (realpath(argv[0], exec_path)) {
+                    char *slash = strrchr(exec_path, '/');
+                    if (slash) {
+                        *slash = '\0';  // strip executable name
                     }
-                }
 
-                if (!fptr) {
-                    ui_print_error(UI_ERR_FILE_NOT_FOUND);
-                    break;
+                    char pathbuf[PATH_MAX];
+                    snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, filename);
+                    fptr = fopen(pathbuf, "r");
                 }
-
-                if (!load_from_file(&courses, fptr)) {
-                    ui_print_error(UI_ERR_OOM);
-                    teardown(&courses);
-                    return EXIT_FAILURE;
-                } else {
-                    printf(SEPERATOR1 "\n  Load from file successful!\n");
-                    fclose(fptr);
-                }
-
             } while (0);
         }
     }
+
+    if (load_file) {
+        if (!fptr) {
+            ui_print_error(UI_ERR_FILE_NOT_FOUND);
+            fprintf(stderr, SEPERATOR1);
+            teardown(&courses);
+            return EXIT_FAILURE;
+        }
+
+        if (!load_from_file(&courses, fptr)) {
+            ui_print_error(UI_ERR_OOM);
+            teardown(&courses);
+            return EXIT_FAILURE;
+        } else {
+            printf(SEPERATOR1 "\n  Load from file successful!\n");
+            fclose(fptr);
+        }
+    }
+
     // Menu loop
     while (true) {
         print_menu();

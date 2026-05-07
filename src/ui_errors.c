@@ -45,10 +45,6 @@ void ui_print_error(ui_error_t err) {
             fprintf(stderr, "\n  Error: file not found\n");
             break;
 
-        case UI_ERR_FILE_TYPE:
-            fprintf(stderr, "\n  Error: invalid file type\n");
-            break;
-
         case UI_ERR_OOM:
             fprintf(stderr, "\n  Fatal error: out of memory\n");
             break;

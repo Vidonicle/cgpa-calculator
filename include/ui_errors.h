@@ -19,7 +19,6 @@ typedef enum {
     UI_ERR_NOT_FOUND,
     UI_ERR_EMPTY,
     UI_ERR_FILE_NOT_FOUND,
-    UI_ERR_FILE_TYPE,
     UI_ERR_OOM
 } ui_error_t;
 
