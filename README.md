@@ -34,16 +34,16 @@ From the project root, execute:
 or:
 
 ```bash
-./build/cgpa ./data/courses
+./build/cgpa courses
 ```
 
 to directly load a file
 
 ## Loading from file
 
-The program automatically searches the current directory and then `data/`.
+The program searches the `data/` directory for your file if you choose to do it after launching the application.
 
-To use this feature, place course files in the `data/` directory.
+To use this feature, place course files in the `data/` directory. They must be placed here.
 
 Courses can also be entered manually through the interactive menu.
 
