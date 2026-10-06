@@ -27,7 +27,7 @@
 static const grade_map_t grade_map[] = {{"A+", 12.0f}, {"A", 11.0f}, {"A-", 10.0f}, {"B+", 9.0f},
                                         {"B", 8.0f},   {"B-", 7.0f}, {"C+", 6.0f},  {"C", 5.0f},
                                         {"C-", 4.0f},  {"D+", 3.0f}, {"D", 2.0f},   {"D-", 1.0f},
-                                        {"F", 0.0f}};
+                                        {"F", 0.0f},   {"CR", 0.0f}, {"NR", 0.0f},  {"SAT", 0.0f}};
 static const size_t GRADE_MAP_LEN = sizeof grade_map / sizeof grade_map[0];
 
 // Print main menu helper to print on loop
@@ -124,7 +124,7 @@ bool load_from_file(list_courses_t *courses, FILE *fptr) {
         // Default values
         char course_code[COURSE_CODE_BUF_LEN] = {0};
         float course_weight = 0.0f;
-        char letter_grade[LETTER_GRADE_BUF_LEN] = "F";
+        char letter_grade[LETTER_GRADE_BUF_LEN] = "NR";
 
         char *tok_entptr;
         char *tok = strtok_r(line, " \t\n,", &tok_entptr);
@@ -152,6 +152,11 @@ bool load_from_file(list_courses_t *courses, FILE *fptr) {
                 strcpy(letter_grade, tok);
                 continue;
             }
+        }
+
+        if (check_courses(courses, course_code)) {
+            edit_course(courses, course_code, course_code, course_weight, letter_grade);
+            continue;
         }
 
         if (!add_course(courses, course_code, course_weight, letter_grade))
@@ -200,11 +205,14 @@ void display_grades(list_courses_t *courses) {
         int grade_w = (curr->letter_grade[1] == '\0') ? 4 : 5;
         int credit_w = (curr->letter_grade[1] == '\0') ? 9 : 8;
 
-        printf("  %-12s %4.2f %*s %*.2f\n", curr->course_code, curr->course_weight, grade_w,
-               curr->letter_grade, credit_w, curr->credits_earned);
+        printf("  %-12s %4.2f    %-5s  %4.2f\n", curr->course_code, curr->course_weight,
+               curr->letter_grade, curr->credits_earned);
 
-        accum_credits += curr->credits_earned;
-        accum_weight += curr->course_weight;
+        if (strcmp(curr->letter_grade, "CR") && strcmp(curr->letter_grade, "NR") &&
+            strcmp(curr->letter_grade, "SAT")) {
+            accum_credits += curr->credits_earned;
+            accum_weight += curr->course_weight;
+        }
         i++;
     }
 

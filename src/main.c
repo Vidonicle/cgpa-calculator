@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
                     // Letter Grade
                     printf(SEPERATOR2
                            "  Please enter your letter grade ((A, B, C, "
-                           "D)+/- or F): ");
+                           "D)+/-, F, CR, NR, or SAT): ");
 
                     if (!fgets(letter_grade_buf, sizeof letter_grade_buf, stdin))
                         break;

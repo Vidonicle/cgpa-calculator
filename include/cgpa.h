@@ -18,9 +18,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define COURSE_CODE_BUF_LEN 10   // 8 chars + '\n' + '\0'
+#define COURSE_CODE_BUF_LEN 10   // 8 chars max + '\n' + '\0'
 #define COURSE_WEIGHT_BUF_LEN 6  // numeric input + '\n' + '\0'
-#define LETTER_GRADE_BUF_LEN 4   // 2 chars + '\n' + '\0'
+#define LETTER_GRADE_BUF_LEN 5   // 3 chars max + '\n' + '\0'
 
 #define SEPERATOR1 "\n ===================================\n"  // Seperator for UI elements
 #define SEPERATOR2 " ===================================\n"    // Seperator for stacked elements
