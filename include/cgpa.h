@@ -150,6 +150,14 @@ void display_grades(course_list_t *courses);
 bool validate_course_code(char *course_code);
 
 /*
+ * Checks if a course weight is valid
+ *
+ * Checks if the input course weight is valid,
+ * returns true if so, false otherwise.
+ */
+bool validate_course_weight(float course_weight);
+
+/*
  * Checks if a letter grade is valid
  *
  * Checks if the input letter grade is valid,

@@ -167,8 +167,7 @@ int main(int argc, char *argv[]) {
                     char *cw_endptr;
                     course_weight = strtof(course_weight_buf, &cw_endptr);
 
-                    if (*cw_endptr != '\0' || !(course_weight == 1.0f || course_weight == 0.5f ||
-                                                course_weight == 0.25f || course_weight == 0.00f)) {
+                    if (*cw_endptr != '\0' || !validate_course_weight(course_weight)) {
                         ui_print_error(UI_ERR_INVALID_WEIGHT);
                         break;
                     }
@@ -183,7 +182,9 @@ int main(int argc, char *argv[]) {
                     if (ui_handle_long_input(letter_grade_buf))
                         break;
                     letter_grade_buf[strcspn(letter_grade_buf, "\n")] = '\0';
-                    letter_grade_buf[0] = (char)toupper((unsigned char)letter_grade_buf[0]);
+
+                    for (size_t i = 0; letter_grade_buf[i] != '\0'; i++)
+                        letter_grade_buf[i] = (char)toupper((unsigned char)letter_grade_buf[i]);
 
                     if (!validate_letter_grade(letter_grade_buf, course_weight)) {
                         ui_print_error(UI_ERR_INVALID_GRADE);
@@ -303,7 +304,7 @@ int main(int argc, char *argv[]) {
                         char *cwn_endptr;
                         float tmp = strtof(course_weight_buf, &cwn_endptr);
 
-                        if (*cwn_endptr != '\0' || !(tmp == 1.0f || tmp == 0.5f || tmp == 0.25f)) {
+                        if (*cwn_endptr != '\0' || !validate_course_weight(tmp)) {
                             ui_print_error(UI_ERR_INVALID_WEIGHT);
                             break;
                         }
@@ -323,7 +324,8 @@ int main(int argc, char *argv[]) {
                     if (letter_grade_buf[0] == '\0') {
                         strcpy(letter_grade_new, old_grade);
                     } else {
-                        letter_grade_buf[0] = (char)toupper((unsigned char)letter_grade_buf[0]);
+                        for (size_t i = 0; letter_grade_buf[i] != '\0'; i++)
+                            letter_grade_buf[i] = (char)toupper((unsigned char)letter_grade_buf[i]);
 
                         if (!validate_letter_grade(letter_grade_buf, course_weight_new)) {
                             ui_print_error(UI_ERR_INVALID_GRADE);

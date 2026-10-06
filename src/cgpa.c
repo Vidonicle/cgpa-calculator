@@ -140,7 +140,8 @@ bool load_from_file(course_list_t *courses, FILE *fptr) {
             char *w_endptr;
             float weight = strtof(tok, &w_endptr);
             if (w_endptr != tok && *w_endptr == '\0') {
-                course_weight = weight;
+                if (validate_course_weight(weight))
+                    course_weight = weight;
                 continue;
             }
 
@@ -252,6 +253,11 @@ bool validate_course_code(char *course_code) {
     }
 
     return true;
+}
+
+bool validate_course_weight(float course_weight) {
+    return (course_weight == 1.00 || course_weight == 0.50 || course_weight == 0.25 ||
+            course_weight == 0.00);
 }
 
 bool validate_letter_grade(const char *letter_grade, float course_weight) {
