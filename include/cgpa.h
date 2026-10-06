@@ -18,9 +18,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define COURSE_CODE_BUF_LEN 10   // 8 chars max + '\n' + '\0'
-#define COURSE_WEIGHT_BUF_LEN 6  // numeric input + '\n' + '\0'
-#define LETTER_GRADE_BUF_LEN 5   // 3 chars max + '\n' + '\0'
+#define COURSE_CODE_BUF_LEN 10   // 8 chars max + '\n' + '\0' AAAA1111
+#define COURSE_WEIGHT_BUF_LEN 6  // 4 chars max + '\n' + '\0' 1.00
+#define LETTER_GRADE_BUF_LEN 5   // 3 chars max + '\n' + '\0' A+
 
 #define SEPERATOR1 "\n ===================================\n"  // Seperator for UI elements
 #define SEPERATOR2 " ===================================\n"    // Seperator for stacked elements
@@ -37,11 +37,12 @@ typedef struct course {
 typedef struct {
     coursenode_t sentinel;
     size_t size;
-} list_courses_t;
+} course_list_t;
 
 typedef struct {
     const char *grade;
     float value;
+    bool zero_weight;
 } grade_map_t;
 
 typedef enum {
@@ -56,34 +57,115 @@ typedef enum {
     MENU_COUNT
 } menu_option_t;
 
+/*
+ * Prints the main menu
+ *
+ * Prints the main menu after every
+ * interaction between user and program
+ * completes.
+ */
 void print_menu(void);
 
-void init_list(list_courses_t *list);
+/*
+ * Initializes the course list.
+ *
+ * Allocates a sentinel node in preparation
+ * for the course list.
+ */
+void init_list(course_list_t *list);
 
-bool add_course(list_courses_t *courses, const char *course_code, float course_weight,
+/*
+ * Adds a course to the course list.
+ *
+ * Allocates a new course node and inserts it
+ * into the list, sets the next and previous pointers,
+ * failure causes program termination, handled externally.
+ */
+bool add_course(course_list_t *courses, const char *course_code, float course_weight,
                 const char *letter_grade);
 
-void delete_course(list_courses_t *courses, const char *course_code);
+/*
+ * Deletes a course from the course list.
+ *
+ * Detaches course from the course list and frees it.
+ */
+void delete_course(course_list_t *courses, const char *course_code);
 
-bool edit_course(list_courses_t *courses, const char *course_code_old, const char *course_code_new,
+/*
+ * Edits a course present in the list.
+ *
+ * Deletes the course from the course list then adds a new course
+ * Uses add_course(), therefore failure results in termination.
+ */
+bool edit_course(course_list_t *courses, const char *course_code_old, const char *course_code_new,
                  float course_weight_new, const char *letter_grade_new);
 
-bool load_from_file(list_courses_t *courses, FILE *fptr);
+/*
+ * Loads courses from file.
+ *
+ * Loads courses from specified file,
+ * file is obtained from argv[1] if argc is 2,
+ * or from manual input otherwise
+ *
+ * Uses add_course, therefore failure results in termination.
+ */
+bool load_from_file(course_list_t *courses, FILE *fptr);
 
-coursenode_t *fetch_node(list_courses_t *courses, const char *course_code);
+/*
+ * Checks course list to see if a course exists.
+ *
+ * Searches through the course list and returns true
+ * if course exists, false otherwise.
+ */
+bool check_courses(course_list_t *courses, const char *course_code);
 
+/*
+ * Fetches and returns the desired node.
+ *
+ * Searches through the course list and returns the memory address
+ * of the node requested, returns NULL if node can not be
+ * located.
+ */
+coursenode_t *fetch_node(course_list_t *courses, const char *course_code);
+
+/*
+ * Calculates the credits earned from a course.
+ */
 float earned_credits(float course_weight, const char *letter_grade);
 
-void display_grades(list_courses_t *courses);
+/*
+ * Displays all courses.
+ *
+ * Displays courses, weight, earned grade, and credits earned, in a list form.
+ * Displays total credits earned and completed, along with CGPA and estimated GPA.
+ */
+void display_grades(course_list_t *courses);
 
-bool check_courses(list_courses_t *courses, const char *course_code);
-
+/*
+ * Checks if a course code is valid
+ *
+ * Checks if the input course code is valid,
+ * returns true if so, false otherwise.
+ */
 bool validate_course_code(char *course_code);
 
-bool validate_letter_grade(const char *letter_grade);
+/*
+ * Checks if a letter grade is valid
+ *
+ * Checks if the input letter grade is valid,
+ * depending on course weight, valid letter grades may vary
+ * returns true if so, false otherwise.
+ */
+bool validate_letter_grade(const char *letter_grade, float course_weight);
 
-void teardown(list_courses_t *course);
+/*
+ * Tears down the course list
+ */
+void teardown(course_list_t *course);
 
+/*
+ * Flushes stdin
+ */
 void flush_stdin(void);
 
 #endif /* CGPA_H */

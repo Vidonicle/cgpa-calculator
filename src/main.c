@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     char filename[FILENAME_LEN];
     char menu_buf[MENU_BUF_LEN];
 
-    list_courses_t courses;
+    course_list_t courses;
     init_list(&courses);
 
     bool load_file = true;
@@ -155,7 +155,8 @@ int main(int argc, char *argv[]) {
                     }
 
                     // Course Weight
-                    printf(SEPERATOR2 "  Please enter your course weight (1.00, 0.50, 0.25): ");
+                    printf(SEPERATOR2
+                           "  Please enter your course weight (1.00, 0.50, 0.25, 0.00): ");
 
                     if (!fgets(course_weight_buf, sizeof course_weight_buf, stdin))
                         break;
@@ -167,7 +168,7 @@ int main(int argc, char *argv[]) {
                     course_weight = strtof(course_weight_buf, &cw_endptr);
 
                     if (*cw_endptr != '\0' || !(course_weight == 1.0f || course_weight == 0.5f ||
-                                                course_weight == 0.25f)) {
+                                                course_weight == 0.25f || course_weight == 0.00f)) {
                         ui_print_error(UI_ERR_INVALID_WEIGHT);
                         break;
                     }
@@ -184,7 +185,7 @@ int main(int argc, char *argv[]) {
                     letter_grade_buf[strcspn(letter_grade_buf, "\n")] = '\0';
                     letter_grade_buf[0] = (char)toupper((unsigned char)letter_grade_buf[0]);
 
-                    if (!validate_letter_grade(letter_grade_buf)) {
+                    if (!validate_letter_grade(letter_grade_buf, course_weight)) {
                         ui_print_error(UI_ERR_INVALID_GRADE);
                         break;
                     }
@@ -324,7 +325,7 @@ int main(int argc, char *argv[]) {
                     } else {
                         letter_grade_buf[0] = (char)toupper((unsigned char)letter_grade_buf[0]);
 
-                        if (!validate_letter_grade(letter_grade_buf)) {
+                        if (!validate_letter_grade(letter_grade_buf, course_weight_new)) {
                             ui_print_error(UI_ERR_INVALID_GRADE);
                             break;
                         }
@@ -354,7 +355,6 @@ int main(int argc, char *argv[]) {
                 printf("\n  Goodbye!\n");
                 teardown(&courses);
                 return EXIT_SUCCESS;
-                break;
         }
     }
 }
