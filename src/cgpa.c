@@ -44,8 +44,8 @@ void print_menu(void) {
 
     printf(
         "\n\n  1. Add a course\n"
-        "  2. Delete a course\n"
-        "  3. Edit a course\n"
+        "  2. Edit a course\n"
+        "  3. Delete a course\n"
         "  %d. Display Courses and CGPA\n"
         "  %d. Exit\n\n"
         "  Enter your selection (1-%d): ",
