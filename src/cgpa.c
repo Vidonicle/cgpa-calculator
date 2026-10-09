@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VERSION "1.4.1"
+#define VERSION "1.5.0"
 
 static const grade_map_t grade_map[] = {
     {"A+", 12.0f, false}, {"A", 11.0f, false}, {"A-", 10.0f, false}, {"B+", 9.0f, false},

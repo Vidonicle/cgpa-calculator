@@ -45,12 +45,12 @@ int main(int argc, char *argv[]) {
                 menu_add_course(&calculator);
                 break;
 
-            case (MENU_DELETE):
-                menu_delete_course(&calculator);
-                break;
-
             case (MENU_EDIT):
                 menu_edit_course(&calculator);
+                break;
+
+            case (MENU_DELETE):
+                menu_delete_course(&calculator);
                 break;
 
             case (MENU_DISPLAY):
