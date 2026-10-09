@@ -6,7 +6,7 @@
 #include "cgpa.h"  // for SEPERATORs and flush_stdin()
 
 void ui_print_error(ui_error_t err) {
-    fprintf(stderr, SEPERATOR2);
+    fprintf(stderr, SEPERATOR1);
 
     switch (err) {
         case UI_ERR_INPUT_TOO_LONG:

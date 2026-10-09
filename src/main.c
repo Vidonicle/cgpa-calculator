@@ -84,6 +84,10 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
             char pathbuf[PATH_MAX];
             snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, argv[1]);
             fptr = fopen(pathbuf, "r");
+            if (!fptr) {
+                ui_print_error(UI_ERR_FILE_NOT_FOUND);
+                return;
+            }
         }
     } else {
         while (true) {
@@ -128,25 +132,24 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
                         fptr = fopen(pathbuf, "r");
                     }
                 } while (0);
+            } else
+                break;
 
-                if (!fptr) {
-                    ui_print_error(UI_ERR_FILE_NOT_FOUND);
-                    continue;
-                }
-
-                if (!load_from_file(&calculator->courses, fptr)) {
-                    fclose(fptr);
-                    ui_print_error(UI_ERR_OOM);
-                    teardown(&calculator->courses);
-                    exit(EXIT_FAILURE);
-                } else {
-                    printf(SEPERATOR1 "\n  Load from file successful!\n");
-                    fclose(fptr);
-                    break;
-                }
+            if (!fptr) {
+                ui_print_error(UI_ERR_FILE_NOT_FOUND);
             } else
                 break;
         }
+    }
+
+    if (!load_from_file(&calculator->courses, fptr)) {
+        fclose(fptr);
+        ui_print_error(UI_ERR_OOM);
+        teardown(&calculator->courses);
+        exit(EXIT_FAILURE);
+    } else {
+        printf(SEPERATOR1 "\n  Load from file successful!\n");
+        fclose(fptr);
     }
 }
 
