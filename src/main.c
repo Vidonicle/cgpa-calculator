@@ -24,11 +24,11 @@
 #include "cgpa.h"
 #include "ui_errors.h"
 
-void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]);
-menu_option_t menu_get_choice(calculator_t *calculator);
-void menu_add_course(calculator_t *calculator);
-void menu_delete_course(calculator_t *calculator);
-void menu_edit_course(calculator_t *calculator);
+static void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]);
+static menu_option_t menu_get_choice(calculator_t *calculator);
+static void menu_add_course(calculator_t *calculator);
+static void menu_delete_course(calculator_t *calculator);
+static void menu_edit_course(calculator_t *calculator);
 
 int main(int argc, char *argv[]) {
     calculator_t calculator;

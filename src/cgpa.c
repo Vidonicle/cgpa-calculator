@@ -91,6 +91,12 @@ bool add_course(course_list_t *courses, const char *course_code, float course_we
     return true;
 }
 
+bool edit_course(course_list_t *courses, const char *course_code_old, const char *course_code_new,
+                 float course_weight_new, const char *letter_grade_new) {
+    delete_course(courses, course_code_old);
+    return add_course(courses, course_code_new, course_weight_new, letter_grade_new);
+}
+
 void delete_course(course_list_t *courses, const char *course_code) {
     coursenode_t *to_delete = fetch_node(courses, course_code);
     if (!to_delete)
@@ -102,12 +108,6 @@ void delete_course(course_list_t *courses, const char *course_code) {
     free(to_delete);
 
     courses->size--;
-}
-
-bool edit_course(course_list_t *courses, const char *course_code_old, const char *course_code_new,
-                 float course_weight_new, const char *letter_grade_new) {
-    delete_course(courses, course_code_old);
-    return add_course(courses, course_code_new, course_weight_new, letter_grade_new);
 }
 
 bool load_from_file(course_list_t *courses, FILE *fptr) {
