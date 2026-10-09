@@ -34,9 +34,9 @@ void ui_print_error(ui_error_t err);
  * If overflowed:
  *  - prints error
  *  - flushes stdin
- *  - returns true
+ *  - returns false
  *
- * Otherwise returns false.
+ * Otherwise returns true.
  */
 bool ui_handle_long_input(const char *buf);
 

@@ -59,7 +59,7 @@ bool ui_handle_long_input(const char *buf) {
     if (!strchr(buf, '\n')) {
         ui_print_error(UI_ERR_INPUT_TOO_LONG);
         flush_stdin();
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }

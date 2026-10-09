@@ -96,7 +96,7 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
 
             fgets(calculator->input_buffers.menu_buf, sizeof(calculator->input_buffers.menu_buf),
                   stdin);
-            load_file = !ui_handle_long_input(calculator->input_buffers.menu_buf);
+            load_file = ui_handle_long_input(calculator->input_buffers.menu_buf);
             calculator->input_buffers.menu_buf[strcspn(calculator->input_buffers.menu_buf, "\n")] =
                 '\0';
             calculator->input_buffers.menu_buf[0] =
@@ -111,7 +111,7 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
 
                 fgets(calculator->input_buffers.filename,
                       sizeof(calculator->input_buffers.filename), stdin);
-                if (ui_handle_long_input(calculator->input_buffers.filename))
+                if (!ui_handle_long_input(calculator->input_buffers.filename))
                     continue;
                 calculator->input_buffers
                     .filename[strcspn(calculator->input_buffers.filename, "\n")] = '\0';
@@ -154,14 +154,14 @@ menu_option_t menu_get_choice(calculator_t *calculator) {
     if (!fgets(calculator->input_buffers.menu_buf, sizeof(calculator->input_buffers.menu_buf),
                stdin))
         return (MENU_INVALID);  // Get choice (1-MENU_COUNT)
-    if (ui_handle_long_input(calculator->input_buffers.menu_buf))
-        return (MENU_INVALID);
+    if (!ui_handle_long_input(calculator->input_buffers.menu_buf))
+        return MENU_INVALID;
     calculator->input_buffers.menu_buf[strcspn(calculator->input_buffers.menu_buf, "\n")] = '\0';
 
     char *m_endptr;
     long menu_choice = strtol(calculator->input_buffers.menu_buf, &m_endptr, 10);
     if (*m_endptr != '\0') {
-        return (MENU_INVALID);
+        return MENU_INVALID;
     }
 
     return menu_choice;
@@ -175,7 +175,7 @@ void menu_add_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.course_code_buf,
                    sizeof(calculator->input_buffers.course_code_buf), stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.course_code_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
             break;
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
@@ -196,7 +196,7 @@ void menu_add_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.course_weight_buf,
                    sizeof calculator->input_buffers.course_weight_buf, stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.course_weight_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.course_weight_buf))
             break;
         calculator->input_buffers
             .course_weight_buf[strcspn(calculator->input_buffers.course_weight_buf, "\n")] = '\0';
@@ -217,7 +217,7 @@ void menu_add_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.letter_grade_buf,
                    sizeof calculator->input_buffers.letter_grade_buf, stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.letter_grade_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.letter_grade_buf))
             break;
         calculator->input_buffers
             .letter_grade_buf[strcspn(calculator->input_buffers.letter_grade_buf, "\n")] = '\0';
@@ -258,7 +258,7 @@ void menu_edit_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.course_code_buf,
                    sizeof(calculator->input_buffers.course_code_buf), stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.course_code_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
             break;
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
@@ -288,7 +288,7 @@ void menu_edit_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.course_code_buf,
                    sizeof(calculator->input_buffers.course_code_buf), stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.course_code_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
             break;
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
@@ -316,7 +316,7 @@ void menu_edit_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.course_weight_buf,
                    sizeof(calculator->input_buffers.course_weight_buf), stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.course_weight_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.course_weight_buf))
             break;
         calculator->input_buffers
             .course_weight_buf[strcspn(calculator->input_buffers.course_weight_buf, "\n")] = '\0';
@@ -340,7 +340,7 @@ void menu_edit_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.letter_grade_buf,
                    sizeof(calculator->input_buffers.letter_grade_buf), stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.letter_grade_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.letter_grade_buf))
             break;
         calculator->input_buffers
             .letter_grade_buf[strcspn(calculator->input_buffers.letter_grade_buf, "\n")] = '\0';
@@ -392,7 +392,7 @@ void menu_delete_course(calculator_t *calculator) {
         if (!fgets(calculator->input_buffers.course_code_buf,
                    sizeof(calculator->input_buffers.course_code_buf), stdin))
             break;
-        if (ui_handle_long_input(calculator->input_buffers.course_code_buf))
+        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
             break;
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
