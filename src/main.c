@@ -27,8 +27,8 @@
 static void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]);
 static menu_option_t menu_get_choice(calculator_t *calculator);
 static void menu_add_course(calculator_t *calculator);
-static void menu_delete_course(calculator_t *calculator);
 static void menu_edit_course(calculator_t *calculator);
+static void menu_delete_course(calculator_t *calculator);
 
 int main(int argc, char *argv[]) {
     calculator_t calculator;
@@ -248,38 +248,6 @@ void menu_add_course(calculator_t *calculator) {
     } while (0);
 }
 
-void menu_delete_course(calculator_t *calculator) {
-    do {
-        if (calculator->courses.size == 0) {
-            ui_print_error(UI_ERR_EMPTY);
-            continue;
-        }
-
-        printf(SEPERATOR1
-               "  Please enter the course code for the course you "
-               "want to delete (Ex. SYSC2006): ");
-
-        if (!fgets(calculator->input_buffers.course_code_buf,
-                   sizeof(calculator->input_buffers.course_code_buf), stdin))
-            break;
-        if (ui_handle_long_input(calculator->input_buffers.course_code_buf))
-            break;
-        calculator->input_buffers
-            .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
-
-        if (!validate_course_code(calculator->input_buffers.course_code_buf)) {
-            ui_print_error(UI_ERR_INVALID_CODE);
-        } else {
-            if (!check_courses(&calculator->courses, calculator->input_buffers.course_code_buf)) {
-                ui_print_error(UI_ERR_COURSE_NOT_FOUND);
-            } else {
-                delete_course(&calculator->courses, calculator->input_buffers.course_code_buf);
-                printf(SEPERATOR2 "\n  Course successfully deleted\n");
-            }
-        }
-    } while (0);
-}
-
 void menu_edit_course(calculator_t *calculator) {
     do {
         // Get Old course code
@@ -407,5 +375,37 @@ void menu_edit_course(calculator_t *calculator) {
                "  -Course Weight: %4.2f\n"
                "  -Letter Grade: %s\n",
                course_code_old, course_code_new, course_weight_new, letter_grade_new);
+    } while (0);
+}
+
+void menu_delete_course(calculator_t *calculator) {
+    do {
+        if (calculator->courses.size == 0) {
+            ui_print_error(UI_ERR_EMPTY);
+            continue;
+        }
+
+        printf(SEPERATOR1
+               "  Please enter the course code for the course you "
+               "want to delete (Ex. SYSC2006): ");
+
+        if (!fgets(calculator->input_buffers.course_code_buf,
+                   sizeof(calculator->input_buffers.course_code_buf), stdin))
+            break;
+        if (ui_handle_long_input(calculator->input_buffers.course_code_buf))
+            break;
+        calculator->input_buffers
+            .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
+
+        if (!validate_course_code(calculator->input_buffers.course_code_buf)) {
+            ui_print_error(UI_ERR_INVALID_CODE);
+        } else {
+            if (!check_courses(&calculator->courses, calculator->input_buffers.course_code_buf)) {
+                ui_print_error(UI_ERR_COURSE_NOT_FOUND);
+            } else {
+                delete_course(&calculator->courses, calculator->input_buffers.course_code_buf);
+                printf(SEPERATOR2 "\n  Course successfully deleted\n");
+            }
+        }
     } while (0);
 }

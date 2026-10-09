@@ -100,6 +100,15 @@ void initialize_courses(course_list_t *list);
  */
 bool add_course(course_list_t *courses, const char *course_code, float course_weight,
                 const char *letter_grade);
+/*
+ * Edits a course present in the list.
+ *
+ * Deletes the course from the course list then adds a new course
+ * Uses add_course(), therefore failure results in termination.
+ */
+
+bool edit_course(course_list_t *courses, const char *course_code_old, const char *course_code_new,
+                 float course_weight_new, const char *letter_grade_new);
 
 /*
  * Deletes a course from the course list.
@@ -107,15 +116,6 @@ bool add_course(course_list_t *courses, const char *course_code, float course_we
  * Detaches course from the course list and frees it.
  */
 void delete_course(course_list_t *courses, const char *course_code);
-
-/*
- * Edits a course present in the list.
- *
- * Deletes the course from the course list then adds a new course
- * Uses add_course(), therefore failure results in termination.
- */
-bool edit_course(course_list_t *courses, const char *course_code_old, const char *course_code_new,
-                 float course_weight_new, const char *letter_grade_new);
 
 /*
  * Loads courses from file.
