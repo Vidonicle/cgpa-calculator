@@ -41,35 +41,33 @@ int main(int argc, char *argv[]) {
         print_menu();
 
         switch (menu_get_choice(&calculator)) {
-            case (MENU_ADD):
+            case MENU_ADD:
                 menu_add_course(&calculator);
                 break;
 
-            case (MENU_EDIT):
+            case MENU_EDIT:
                 menu_edit_course(&calculator);
                 break;
 
-            case (MENU_DELETE):
+            case MENU_DELETE:
                 menu_delete_course(&calculator);
                 break;
 
-            case (MENU_DISPLAY):
+            case MENU_DISPLAY:
                 display_grades(&calculator.courses);
                 break;
 
-            case (MENU_EXIT):
+            case MENU_EXIT:
                 printf("\n  Goodbye!\n");
                 teardown(&calculator.courses);
                 return EXIT_SUCCESS;
 
-            case (MENU_INVALID):
+            case MENU_INVALID:
             default:
                 ui_print_error(UI_ERR_INVALID_MENU);
                 break;
         }
     }
-
-    return EXIT_FAILURE;
 }
 
 void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
