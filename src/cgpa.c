@@ -52,7 +52,7 @@ void print_menu(void) {
         MENU_DISPLAY, MENU_EXIT, MENU_EXIT);
 }
 
-void init_list(course_list_t *list) {
+void initialize_courses(course_list_t *list) {
     memset(&(list->sentinel), 0, sizeof(list->sentinel));
 
     list->sentinel.next = &(list->sentinel);
