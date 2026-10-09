@@ -24,19 +24,10 @@
 #include "cgpa.h"
 #include "ui_errors.h"
 
-#define MENU_BUF_LEN 64            // 62 chars + '\n' + '\0'
-#define FILENAME_LEN MENU_BUF_LEN  // Length of filename
-
 int main(int argc, char *argv[]) {
-    char course_code_buf[COURSE_CODE_BUF_LEN];
-    char course_weight_buf[COURSE_WEIGHT_BUF_LEN];
-    float course_weight = 0.0f;
-    char letter_grade_buf[LETTER_GRADE_BUF_LEN];
-    char filename[FILENAME_LEN];
-    char menu_buf[MENU_BUF_LEN];
+    calculator_t calculator;
 
-    course_list_t courses;
-    init_list(&courses);
+    initialize_courses(&calculator.courses);
 
     bool load_file = true;
     FILE *fptr = NULL;
@@ -54,15 +45,16 @@ int main(int argc, char *argv[]) {
             fptr = fopen(pathbuf, "r");
         }
     } else {
-        printf(SEPERATOR1 "\n  Would you like to load courses from file? (Y/n): ");
+        printf(SEPERATOR1 "\n  Would you like to load calculator.courses from file? (Y/n): ");
 
-        fgets(menu_buf, sizeof(menu_buf), stdin);
-        if (ui_handle_long_input(menu_buf))
+        fgets(calculator.input_buffers.menu_buf, sizeof(calculator.input_buffers.menu_buf), stdin);
+        if (ui_handle_long_input(calculator.input_buffers.menu_buf))
             load_file = false;
-        menu_buf[strcspn(menu_buf, "\n")] = '\0';
-        menu_buf[0] = (char)tolower((unsigned char)menu_buf[0]);
+        calculator.input_buffers.menu_buf[strcspn(calculator.input_buffers.menu_buf, "\n")] = '\0';
+        calculator.input_buffers.menu_buf[0] =
+            (char)tolower((unsigned char)calculator.input_buffers.menu_buf[0]);
 
-        if (menu_buf[0] == 'n')
+        if (calculator.input_buffers.menu_buf[0] == 'n')
             load_file = false;
 
         if (load_file) {
@@ -70,10 +62,12 @@ int main(int argc, char *argv[]) {
             do {
                 printf(SEPERATOR1 "\n  Please enter the name of your file: ");
 
-                fgets(filename, sizeof(filename), stdin);
-                if (ui_handle_long_input(filename))
+                fgets(calculator.input_buffers.filename, sizeof(calculator.input_buffers.filename),
+                      stdin);
+                if (ui_handle_long_input(calculator.input_buffers.filename))
                     break;
-                filename[strcspn(filename, "\n")] = '\0';
+                calculator.input_buffers
+                    .filename[strcspn(calculator.input_buffers.filename, "\n")] = '\0';
 
                 // Locate file in intended folder
                 char exec_path[PATH_MAX];
@@ -82,9 +76,9 @@ int main(int argc, char *argv[]) {
                     if (slash) {
                         *slash = '\0';  // strip executable name
                     }
-
                     char pathbuf[PATH_MAX];
-                    snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, filename);
+                    snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path,
+                             calculator.input_buffers.filename);
                     fptr = fopen(pathbuf, "r");
                 }
             } while (0);
@@ -95,13 +89,13 @@ int main(int argc, char *argv[]) {
         if (!fptr) {
             ui_print_error(UI_ERR_FILE_NOT_FOUND);
             fprintf(stderr, SEPERATOR1);
-            teardown(&courses);
+            teardown(&calculator.courses);
             return EXIT_FAILURE;
         }
 
-        if (!load_from_file(&courses, fptr)) {
+        if (!load_from_file(&calculator.courses, fptr)) {
             ui_print_error(UI_ERR_OOM);
-            teardown(&courses);
+            teardown(&calculator.courses);
             return EXIT_FAILURE;
         } else {
             printf(SEPERATOR1 "\n  Load from file successful!\n");
@@ -113,15 +107,15 @@ int main(int argc, char *argv[]) {
     while (true) {
         print_menu();
 
-        if (!fgets(menu_buf, sizeof(menu_buf), stdin))
+        if (!fgets(calculator.input_buffers.menu_buf, sizeof(calculator.input_buffers.menu_buf),
+                   stdin))
             break;  // Get choice (1-MENU_COUNT)
-        if (ui_handle_long_input(menu_buf))
+        if (ui_handle_long_input(calculator.input_buffers.menu_buf))
             break;
-        menu_buf[strcspn(menu_buf, "\n")] = '\0';
+        calculator.input_buffers.menu_buf[strcspn(calculator.input_buffers.menu_buf, "\n")] = '\0';
 
         char *m_endptr;
-        long menu_choice = strtol(menu_buf, &m_endptr, 10);
-
+        long menu_choice = strtol(calculator.input_buffers.menu_buf, &m_endptr, 10);
         if (*m_endptr != '\0') {
             ui_print_error(UI_ERR_INVALID_MENU);
             continue;
@@ -138,18 +132,22 @@ int main(int argc, char *argv[]) {
                 do {
                     printf(SEPERATOR1 "  Please enter your course code (Ex. SYSC2006): ");
 
-                    if (!fgets(course_code_buf, sizeof(course_code_buf), stdin))
+                    if (!fgets(calculator.input_buffers.course_code_buf,
+                               sizeof(calculator.input_buffers.course_code_buf), stdin))
                         break;
-                    if (ui_handle_long_input(course_code_buf))
+                    if (ui_handle_long_input(calculator.input_buffers.course_code_buf))
                         break;
-                    course_code_buf[strcspn(course_code_buf, "\n")] = '\0';
+                    calculator.input_buffers
+                        .course_code_buf[strcspn(calculator.input_buffers.course_code_buf, "\n")] =
+                        '\0';
 
-                    if (!validate_course_code(course_code_buf)) {
+                    if (!validate_course_code(calculator.input_buffers.course_code_buf)) {
                         ui_print_error(UI_ERR_INVALID_CODE);
                         break;
                     }
 
-                    if (check_courses(&courses, course_code_buf)) {
+                    if (check_courses(&calculator.courses,
+                                      calculator.input_buffers.course_code_buf)) {
                         ui_print_error(UI_ERR_DUPLICATE);
                         break;
                     }
@@ -158,14 +156,17 @@ int main(int argc, char *argv[]) {
                     printf(SEPERATOR2
                            "  Please enter your course weight (1.00, 0.50, 0.25, 0.00): ");
 
-                    if (!fgets(course_weight_buf, sizeof course_weight_buf, stdin))
+                    if (!fgets(calculator.input_buffers.course_weight_buf,
+                               sizeof calculator.input_buffers.course_weight_buf, stdin))
                         break;
-                    if (ui_handle_long_input(course_weight_buf))
+                    if (ui_handle_long_input(calculator.input_buffers.course_weight_buf))
                         break;
-                    course_weight_buf[strcspn(course_weight_buf, "\n")] = '\0';
+                    calculator.input_buffers.course_weight_buf[strcspn(
+                        calculator.input_buffers.course_weight_buf, "\n")] = '\0';
 
                     char *cw_endptr;
-                    course_weight = strtof(course_weight_buf, &cw_endptr);
+                    float course_weight =
+                        strtof(calculator.input_buffers.course_weight_buf, &cw_endptr);
 
                     if (*cw_endptr != '\0' || !validate_course_weight(course_weight)) {
                         ui_print_error(UI_ERR_INVALID_WEIGHT);
@@ -177,23 +178,28 @@ int main(int argc, char *argv[]) {
                            "  Please enter your letter grade ((A, B, C, "
                            "D)+/-, F, CR, NR, or SAT): ");
 
-                    if (!fgets(letter_grade_buf, sizeof letter_grade_buf, stdin))
+                    if (!fgets(calculator.input_buffers.letter_grade_buf,
+                               sizeof calculator.input_buffers.letter_grade_buf, stdin))
                         break;
-                    if (ui_handle_long_input(letter_grade_buf))
+                    if (ui_handle_long_input(calculator.input_buffers.letter_grade_buf))
                         break;
-                    letter_grade_buf[strcspn(letter_grade_buf, "\n")] = '\0';
+                    calculator.input_buffers.letter_grade_buf[strcspn(
+                        calculator.input_buffers.letter_grade_buf, "\n")] = '\0';
 
-                    for (size_t i = 0; letter_grade_buf[i] != '\0'; i++)
-                        letter_grade_buf[i] = (char)toupper((unsigned char)letter_grade_buf[i]);
+                    for (size_t i = 0; calculator.input_buffers.letter_grade_buf[i] != '\0'; i++)
+                        calculator.input_buffers.letter_grade_buf[i] = (char)toupper(
+                            (unsigned char)calculator.input_buffers.letter_grade_buf[i]);
 
-                    if (!validate_letter_grade(letter_grade_buf, course_weight)) {
+                    if (!validate_letter_grade(calculator.input_buffers.letter_grade_buf,
+                                               course_weight)) {
                         ui_print_error(UI_ERR_INVALID_GRADE);
                         break;
                     }
 
-                    if (!add_course(&courses, course_code_buf, course_weight, letter_grade_buf)) {
+                    if (!add_course(&calculator.courses, calculator.input_buffers.course_code_buf,
+                                    course_weight, calculator.input_buffers.letter_grade_buf)) {
                         ui_print_error(UI_ERR_OOM);
-                        teardown(&courses);
+                        teardown(&calculator.courses);
                         return EXIT_FAILURE;
                     } else {
                         printf(SEPERATOR2
@@ -201,12 +207,13 @@ int main(int argc, char *argv[]) {
                                "  -Course Code: %s\n"
                                "  -Course Weight: %4.2f\n"
                                "  -Letter Grade: %s\n",
-                               course_code_buf, course_weight, letter_grade_buf);
+                               calculator.input_buffers.course_code_buf, course_weight,
+                               calculator.input_buffers.letter_grade_buf);
                     }
                 } while (0);
                 break;
             case (MENU_DELETE):
-                if (courses.size == 0) {
+                if (calculator.courses.size == 0) {
                     ui_print_error(UI_ERR_EMPTY);
                     continue;
                 }
@@ -215,19 +222,24 @@ int main(int argc, char *argv[]) {
                        "  Please enter the course code for the course you "
                        "want to delete (Ex. SYSC2006): ");
 
-                if (!fgets(course_code_buf, sizeof(course_code_buf), stdin))
+                if (!fgets(calculator.input_buffers.course_code_buf,
+                           sizeof(calculator.input_buffers.course_code_buf), stdin))
                     break;
-                if (ui_handle_long_input(course_code_buf))
+                if (ui_handle_long_input(calculator.input_buffers.course_code_buf))
                     break;
-                course_code_buf[strcspn(course_code_buf, "\n")] = '\0';
+                calculator.input_buffers
+                    .course_code_buf[strcspn(calculator.input_buffers.course_code_buf, "\n")] =
+                    '\0';
 
-                if (!validate_course_code(course_code_buf)) {
+                if (!validate_course_code(calculator.input_buffers.course_code_buf)) {
                     ui_print_error(UI_ERR_INVALID_CODE);
                 } else {
-                    if (!check_courses(&courses, course_code_buf)) {
+                    if (!check_courses(&calculator.courses,
+                                       calculator.input_buffers.course_code_buf)) {
                         ui_print_error(UI_ERR_NOT_FOUND);
                     } else {
-                        delete_course(&courses, course_code_buf);
+                        delete_course(&calculator.courses,
+                                      calculator.input_buffers.course_code_buf);
                         printf(SEPERATOR2 "\n  Course successfully deleted\n");
                     }
                 }
@@ -239,26 +251,31 @@ int main(int argc, char *argv[]) {
                            "  Please enter the course code for the course you "
                            "want to edit (Ex. SYSC2006): ");
 
-                    if (!fgets(course_code_buf, sizeof(course_code_buf), stdin))
+                    if (!fgets(calculator.input_buffers.course_code_buf,
+                               sizeof(calculator.input_buffers.course_code_buf), stdin))
                         break;
-                    if (ui_handle_long_input(course_code_buf))
+                    if (ui_handle_long_input(calculator.input_buffers.course_code_buf))
                         break;
-                    course_code_buf[strcspn(course_code_buf, "\n")] = '\0';
+                    calculator.input_buffers
+                        .course_code_buf[strcspn(calculator.input_buffers.course_code_buf, "\n")] =
+                        '\0';
 
-                    if (!validate_course_code(course_code_buf)) {
+                    if (!validate_course_code(calculator.input_buffers.course_code_buf)) {
                         ui_print_error(UI_ERR_INVALID_CODE);
                         break;
                     }
 
-                    if (!check_courses(&courses, course_code_buf)) {
+                    if (!check_courses(&calculator.courses,
+                                       calculator.input_buffers.course_code_buf)) {
                         ui_print_error(UI_ERR_NOT_FOUND);
                         break;
                     }
 
                     char course_code_old[COURSE_CODE_BUF_LEN];
-                    strcpy(course_code_old, course_code_buf);
+                    strcpy(course_code_old, calculator.input_buffers.course_code_buf);
 
-                    coursenode_t *fetched_node = fetch_node(&courses, course_code_buf);
+                    coursenode_t *fetched_node =
+                        fetch_node(&calculator.courses, calculator.input_buffers.course_code_buf);
                     float old_weight = fetched_node->course_weight;
                     char old_grade[LETTER_GRADE_BUF_LEN];
                     strcpy(old_grade, fetched_node->letter_grade);
@@ -266,25 +283,28 @@ int main(int argc, char *argv[]) {
                     // Get new course code
                     printf(SEPERATOR2 "  Enter new course code (leave blank for no changes): ");
 
-                    if (!fgets(course_code_buf, sizeof(course_code_buf), stdin))
+                    if (!fgets(calculator.input_buffers.course_code_buf,
+                               sizeof(calculator.input_buffers.course_code_buf), stdin))
                         break;
-                    if (ui_handle_long_input(course_code_buf))
+                    if (ui_handle_long_input(calculator.input_buffers.course_code_buf))
                         break;
-                    course_code_buf[strcspn(course_code_buf, "\n")] = '\0';
+                    calculator.input_buffers
+                        .course_code_buf[strcspn(calculator.input_buffers.course_code_buf, "\n")] =
+                        '\0';
 
                     char course_code_new[COURSE_CODE_BUF_LEN];
-                    if (course_code_buf[0] == '\0') {
+                    if (calculator.input_buffers.course_code_buf[0] == '\0') {
                         strcpy(course_code_new, course_code_old);
                     } else {
-                        if (!validate_course_code(course_code_buf)) {
+                        if (!validate_course_code(calculator.input_buffers.course_code_buf)) {
                             ui_print_error(UI_ERR_INVALID_CODE);
                             break;
                         }
-                        strcpy(course_code_new, course_code_buf);
+                        strcpy(course_code_new, calculator.input_buffers.course_code_buf);
                     }
 
                     if (strcmp(course_code_new, course_code_old) != 0 &&
-                        check_courses(&courses, course_code_new)) {
+                        check_courses(&calculator.courses, course_code_new)) {
                         ui_print_error(UI_ERR_DUPLICATE);
                         break;
                     }
@@ -292,53 +312,61 @@ int main(int argc, char *argv[]) {
                     // Get course weight
                     printf(SEPERATOR2 "  Enter new course weight (leave blank for no changes): ");
 
-                    if (!fgets(course_weight_buf, sizeof(course_weight_buf), stdin))
+                    if (!fgets(calculator.input_buffers.course_weight_buf,
+                               sizeof(calculator.input_buffers.course_weight_buf), stdin))
                         break;
-                    if (ui_handle_long_input(course_weight_buf))
+                    if (ui_handle_long_input(calculator.input_buffers.course_weight_buf))
                         break;
-                    course_weight_buf[strcspn(course_weight_buf, "\n")] = '\0';
+                    calculator.input_buffers.course_weight_buf[strcspn(
+                        calculator.input_buffers.course_weight_buf, "\n")] = '\0';
 
                     float course_weight_new = old_weight;
 
-                    if (course_weight_buf[0] != '\0') {
+                    if (calculator.input_buffers.course_weight_buf[0] != '\0') {
                         char *cwn_endptr;
-                        float tmp = strtof(course_weight_buf, &cwn_endptr);
+                        float course_weight =
+                            strtof(calculator.input_buffers.course_weight_buf, &cwn_endptr);
 
-                        if (*cwn_endptr != '\0' || !validate_course_weight(tmp)) {
+                        if (*cwn_endptr != '\0' || !validate_course_weight(course_weight)) {
                             ui_print_error(UI_ERR_INVALID_WEIGHT);
                             break;
                         }
 
-                        course_weight_new = tmp;
+                        course_weight_new = course_weight;
                     }
 
                     printf(SEPERATOR2 "  Enter new letter grade (leave blank for no changes): ");
 
-                    if (!fgets(letter_grade_buf, sizeof(letter_grade_buf), stdin))
+                    if (!fgets(calculator.input_buffers.letter_grade_buf,
+                               sizeof(calculator.input_buffers.letter_grade_buf), stdin))
                         break;
-                    if (ui_handle_long_input(letter_grade_buf))
+                    if (ui_handle_long_input(calculator.input_buffers.letter_grade_buf))
                         break;
-                    letter_grade_buf[strcspn(letter_grade_buf, "\n")] = '\0';
+                    calculator.input_buffers.letter_grade_buf[strcspn(
+                        calculator.input_buffers.letter_grade_buf, "\n")] = '\0';
 
                     char letter_grade_new[LETTER_GRADE_BUF_LEN];
-                    if (letter_grade_buf[0] == '\0') {
+                    if (calculator.input_buffers.letter_grade_buf[0] == '\0') {
                         strcpy(letter_grade_new, old_grade);
                     } else {
-                        for (size_t i = 0; letter_grade_buf[i] != '\0'; i++)
-                            letter_grade_buf[i] = (char)toupper((unsigned char)letter_grade_buf[i]);
+                        for (size_t i = 0; calculator.input_buffers.letter_grade_buf[i] != '\0';
+                             i++)
+                            calculator.input_buffers.letter_grade_buf[i] = (char)toupper(
+                                (unsigned char)calculator.input_buffers.letter_grade_buf[i]);
 
-                        if (!validate_letter_grade(letter_grade_buf, course_weight_new)) {
+                        if (!validate_letter_grade(calculator.input_buffers.letter_grade_buf,
+                                                   course_weight_new)) {
                             ui_print_error(UI_ERR_INVALID_GRADE);
                             break;
                         }
-                        strcpy(letter_grade_new, letter_grade_buf);
+                        strcpy(letter_grade_new, calculator.input_buffers.letter_grade_buf);
                     }
 
                     // Finalize edit
-                    if (!edit_course(&courses, course_code_old, course_code_new, course_weight_new,
-                                     letter_grade_new)) {
+                    if (!edit_course(&calculator.courses, course_code_old, course_code_new,
+                                     course_weight_new, letter_grade_new)) {
                         ui_print_error(UI_ERR_OOM);
-                        teardown(&courses);
+                        teardown(&calculator.courses);
                         return EXIT_FAILURE;
                     }
                     printf(SEPERATOR2
@@ -351,11 +379,11 @@ int main(int argc, char *argv[]) {
                 } while (0);
                 break;
             case (MENU_DISPLAY):
-                display_grades(&courses);
+                display_grades(&calculator.courses);
                 break;
             case (MENU_EXIT):
                 printf("\n  Goodbye!\n");
-                teardown(&courses);
+                teardown(&calculator.courses);
                 return EXIT_SUCCESS;
         }
     }

@@ -18,9 +18,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define COURSE_CODE_BUF_LEN 10   // 8 chars max + '\n' + '\0' AAAA1111
-#define COURSE_WEIGHT_BUF_LEN 6  // 4 chars max + '\n' + '\0' 1.00
-#define LETTER_GRADE_BUF_LEN 5   // 3 chars max + '\n' + '\0' A+
+#define COURSE_CODE_BUF_LEN 10   // 8 chars max + '\n' + '\0'
+#define COURSE_WEIGHT_BUF_LEN 6  // 4 chars max + '\n' + '\0'
+#define LETTER_GRADE_BUF_LEN 5   // 3 chars max + '\n' + '\0'
+
+#define MENU_BUF_LEN 64            // 62 chars + '\n' + '\0'
+#define FILENAME_LEN MENU_BUF_LEN  // Length of filename
 
 #define SEPERATOR1 "\n ===================================\n"  // Seperator for UI elements
 #define SEPERATOR2 " ===================================\n"    // Seperator for stacked elements
@@ -38,6 +41,20 @@ typedef struct {
     coursenode_t sentinel;
     size_t size;
 } course_list_t;
+
+typedef struct {
+    char course_code_buf[COURSE_CODE_BUF_LEN];
+    char course_weight_buf[COURSE_WEIGHT_BUF_LEN];
+    char letter_grade_buf[LETTER_GRADE_BUF_LEN];
+    char filename[FILENAME_LEN];
+    char menu_buf[MENU_BUF_LEN];
+} input_buffers_t;
+
+typedef struct {
+    input_buffers_t input_buffers;
+
+    course_list_t courses;
+} calculator_t;
 
 typedef struct {
     const char *grade;
@@ -72,7 +89,7 @@ void print_menu(void);
  * Allocates a sentinel node in preparation
  * for the course list.
  */
-void init_list(course_list_t *list);
+void initialize_courses(course_list_t *list);
 
 /*
  * Adds a course to the course list.
