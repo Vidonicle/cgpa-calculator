@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
 }
 
 void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
+    bool load_file = true;
     FILE *fptr = NULL;
 
     if (argc == 2) {
@@ -91,13 +92,11 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
         }
     } else {
         while (true) {
-            bool load_file = true;
             printf(SEPERATOR1 "\n  Would you like to load calculator->courses from file? (Y/n): ");
 
             fgets(calculator->input_buffers.menu_buf, sizeof(calculator->input_buffers.menu_buf),
                   stdin);
-            if (ui_handle_long_input(calculator->input_buffers.menu_buf))
-                load_file = false;
+            load_file = !ui_handle_long_input(calculator->input_buffers.menu_buf);
             calculator->input_buffers.menu_buf[strcspn(calculator->input_buffers.menu_buf, "\n")] =
                 '\0';
             calculator->input_buffers.menu_buf[0] =
@@ -108,32 +107,30 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
 
             if (load_file) {
                 // File parsing loop
-                do {
-                    printf(SEPERATOR1 "\n  Please enter the name of your file: ");
+                printf(SEPERATOR1 "\n  Please enter the name of your file: ");
 
-                    fgets(calculator->input_buffers.filename,
-                          sizeof(calculator->input_buffers.filename), stdin);
-                    if (ui_handle_long_input(calculator->input_buffers.filename))
-                        continue;
-                    calculator->input_buffers
-                        .filename[strcspn(calculator->input_buffers.filename, "\n")] = '\0';
-                    if (calculator->input_buffers.filename[0] == '\0')
-                        continue;
-                    // Locate file in intended folder
-                    char exec_path[PATH_MAX];
-                    if (realpath(argv[0], exec_path)) {
-                        char *slash = strrchr(exec_path, '/');
-                        if (slash) {
-                            *slash = '\0';  // strip executable name
-                        }
-                        char pathbuf[PATH_MAX];
-                        snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path,
-                                 calculator->input_buffers.filename);
-                        fptr = fopen(pathbuf, "r");
+                fgets(calculator->input_buffers.filename,
+                      sizeof(calculator->input_buffers.filename), stdin);
+                if (ui_handle_long_input(calculator->input_buffers.filename))
+                    continue;
+                calculator->input_buffers
+                    .filename[strcspn(calculator->input_buffers.filename, "\n")] = '\0';
+                if (calculator->input_buffers.filename[0] == '\0')
+                    continue;
+                // Locate file in intended folder
+                char exec_path[PATH_MAX];
+                if (realpath(argv[0], exec_path)) {
+                    char *slash = strrchr(exec_path, '/');
+                    if (slash) {
+                        *slash = '\0';  // strip executable name
                     }
-                } while (0);
+                    char pathbuf[PATH_MAX];
+                    snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path,
+                             calculator->input_buffers.filename);
+                    fptr = fopen(pathbuf, "r");
+                }
             } else
-                break;
+                return;
 
             if (!fptr) {
                 ui_print_error(UI_ERR_FILE_NOT_FOUND);
