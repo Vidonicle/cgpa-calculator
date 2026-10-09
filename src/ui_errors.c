@@ -33,7 +33,7 @@ void ui_print_error(ui_error_t err) {
             fprintf(stderr, "\n  Error: course already exists\n");
             break;
 
-        case UI_ERR_NOT_FOUND:
+        case UI_ERR_COURSE_NOT_FOUND:
             fprintf(stderr, "\n  Error: course not found\n");
             break;
 

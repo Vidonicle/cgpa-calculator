@@ -66,8 +66,8 @@ typedef enum {
     MENU_INVALID = 0,  // Invalid option
 
     MENU_ADD,
-    MENU_DELETE,
     MENU_EDIT,
+    MENU_DELETE,
     MENU_DISPLAY,
     MENU_EXIT,
 
