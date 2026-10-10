@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VERSION "1.5.0"
+#define VERSION "1.5.1"
 
 static const grade_map_t grade_map[] = {
     {"A+", 12.0f, false}, {"A", 11.0f, false}, {"A-", 10.0f, false}, {"B+", 9.0f, false},
@@ -276,9 +276,4 @@ void teardown(course_list_t *courses) {
         free(curr);
         curr = next;
     }
-}
-
-void flush_stdin(void) {
-    int c_flush;
-    while ((c_flush = getchar()) != '\n' && c_flush != EOF);
 }

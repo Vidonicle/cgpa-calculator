@@ -13,7 +13,7 @@
  ***********************************/
 
 #include <ctype.h>
-#include <getopt.h>
+#include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -63,11 +63,29 @@ int main(int argc, char *argv[]) {
                 return EXIT_SUCCESS;
 
             case MENU_INVALID:
-            default:
                 ui_print_error(UI_ERR_INVALID_MENU);
+                break;
+
+            default:
                 break;
         }
     }
+}
+
+bool ui_handle_input(course_list_t *courses, char *buf, size_t size) {
+    if (!fgets((buf), size, stdin)) {
+        int status = EXIT_SUCCESS;
+
+        if (ferror(stdin)) {
+            perror("Error reading input");
+            status = EXIT_FAILURE;
+        }
+
+        teardown(courses);
+        exit(status);
+    }
+
+    return ui_handle_long_input(buf);
 }
 
 void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
@@ -94,9 +112,9 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
         while (true) {
             printf(SEPERATOR1 "\n  Would you like to load calculator->courses from file? (Y/n): ");
 
-            fgets(calculator->input_buffers.menu_buf, sizeof(calculator->input_buffers.menu_buf),
-                  stdin);
-            load_file = ui_handle_long_input(calculator->input_buffers.menu_buf);
+            load_file = ui_handle_input(&calculator->courses, calculator->input_buffers.menu_buf,
+                                        sizeof(calculator->input_buffers.menu_buf));
+
             calculator->input_buffers.menu_buf[strcspn(calculator->input_buffers.menu_buf, "\n")] =
                 '\0';
             calculator->input_buffers.menu_buf[0] =
@@ -109,14 +127,15 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
                 // File parsing loop
                 printf(SEPERATOR1 "\n  Please enter the name of your file: ");
 
-                fgets(calculator->input_buffers.filename,
-                      sizeof(calculator->input_buffers.filename), stdin);
-                if (!ui_handle_long_input(calculator->input_buffers.filename))
+                if (!ui_handle_input(&calculator->courses, calculator->input_buffers.filename,
+                                     sizeof(calculator->input_buffers.filename)))
                     continue;
+
                 calculator->input_buffers
                     .filename[strcspn(calculator->input_buffers.filename, "\n")] = '\0';
                 if (calculator->input_buffers.filename[0] == '\0')
                     continue;
+
                 // Locate file in intended folder
                 char exec_path[PATH_MAX];
                 if (realpath(argv[0], exec_path)) {
@@ -151,20 +170,22 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
 }
 
 menu_option_t menu_get_choice(calculator_t *calculator) {
-    if (!fgets(calculator->input_buffers.menu_buf, sizeof(calculator->input_buffers.menu_buf),
-               stdin))
-        return (MENU_INVALID);  // Get choice (1-MENU_COUNT)
-    if (!ui_handle_long_input(calculator->input_buffers.menu_buf))
+    if (!ui_handle_input(&calculator->courses, calculator->input_buffers.menu_buf,
+                         sizeof(calculator->input_buffers.menu_buf)))
         return MENU_INVALID;
+
     calculator->input_buffers.menu_buf[strcspn(calculator->input_buffers.menu_buf, "\n")] = '\0';
 
     char *m_endptr;
-    long menu_choice = strtol(calculator->input_buffers.menu_buf, &m_endptr, 10);
-    if (*m_endptr != '\0') {
-        return MENU_INVALID;
-    }
+    errno = 0;
 
-    return menu_choice;
+    long menu_choice = strtol(calculator->input_buffers.menu_buf, &m_endptr, 10);
+
+    if (errno == ERANGE || m_endptr == calculator->input_buffers.menu_buf || *m_endptr != '\0' ||
+        menu_choice < MENU_ADD || menu_choice >= MENU_COUNT)
+        return MENU_INVALID;
+
+    return (menu_option_t)menu_choice;
 }
 
 void menu_add_course(calculator_t *calculator) {
@@ -172,11 +193,10 @@ void menu_add_course(calculator_t *calculator) {
         // Course Code
         printf(SEPERATOR1 "  Please enter your course code (Ex. SYSC2006): ");
 
-        if (!fgets(calculator->input_buffers.course_code_buf,
-                   sizeof(calculator->input_buffers.course_code_buf), stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.course_code_buf,
+                             sizeof(calculator->input_buffers.course_code_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
-            break;
+
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
 
@@ -193,11 +213,10 @@ void menu_add_course(calculator_t *calculator) {
         // Course Weight
         printf(SEPERATOR2 "  Please enter your course weight (1.00, 0.50, 0.25, 0.00): ");
 
-        if (!fgets(calculator->input_buffers.course_weight_buf,
-                   sizeof calculator->input_buffers.course_weight_buf, stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.course_weight_buf,
+                             sizeof(calculator->input_buffers.course_weight_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.course_weight_buf))
-            break;
+
         calculator->input_buffers
             .course_weight_buf[strcspn(calculator->input_buffers.course_weight_buf, "\n")] = '\0';
 
@@ -214,11 +233,10 @@ void menu_add_course(calculator_t *calculator) {
                "  Please enter your letter grade ((A, B, C, "
                "D)+/-, F, CR, NR, or SAT): ");
 
-        if (!fgets(calculator->input_buffers.letter_grade_buf,
-                   sizeof calculator->input_buffers.letter_grade_buf, stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.letter_grade_buf,
+                             sizeof(calculator->input_buffers.letter_grade_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.letter_grade_buf))
-            break;
+
         calculator->input_buffers
             .letter_grade_buf[strcspn(calculator->input_buffers.letter_grade_buf, "\n")] = '\0';
 
@@ -255,11 +273,10 @@ void menu_edit_course(calculator_t *calculator) {
                "  Please enter the course code for the course you "
                "want to edit (Ex. SYSC2006): ");
 
-        if (!fgets(calculator->input_buffers.course_code_buf,
-                   sizeof(calculator->input_buffers.course_code_buf), stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.course_code_buf,
+                             sizeof(calculator->input_buffers.course_code_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
-            break;
+
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
 
@@ -285,11 +302,10 @@ void menu_edit_course(calculator_t *calculator) {
         // Get new course code
         printf(SEPERATOR2 "  Enter new course code (leave blank for no changes): ");
 
-        if (!fgets(calculator->input_buffers.course_code_buf,
-                   sizeof(calculator->input_buffers.course_code_buf), stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.course_code_buf,
+                             sizeof(calculator->input_buffers.course_code_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
-            break;
+
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
 
@@ -313,11 +329,10 @@ void menu_edit_course(calculator_t *calculator) {
         // Get course weight
         printf(SEPERATOR2 "  Enter new course weight (leave blank for no changes): ");
 
-        if (!fgets(calculator->input_buffers.course_weight_buf,
-                   sizeof(calculator->input_buffers.course_weight_buf), stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.course_weight_buf,
+                             sizeof(calculator->input_buffers.course_weight_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.course_weight_buf))
-            break;
+
         calculator->input_buffers
             .course_weight_buf[strcspn(calculator->input_buffers.course_weight_buf, "\n")] = '\0';
 
@@ -337,11 +352,10 @@ void menu_edit_course(calculator_t *calculator) {
 
         printf(SEPERATOR2 "  Enter new letter grade (leave blank for no changes): ");
 
-        if (!fgets(calculator->input_buffers.letter_grade_buf,
-                   sizeof(calculator->input_buffers.letter_grade_buf), stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.letter_grade_buf,
+                             sizeof(calculator->input_buffers.letter_grade_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.letter_grade_buf))
-            break;
+
         calculator->input_buffers
             .letter_grade_buf[strcspn(calculator->input_buffers.letter_grade_buf, "\n")] = '\0';
 
@@ -389,11 +403,10 @@ void menu_delete_course(calculator_t *calculator) {
                "  Please enter the course code for the course you "
                "want to delete (Ex. SYSC2006): ");
 
-        if (!fgets(calculator->input_buffers.course_code_buf,
-                   sizeof(calculator->input_buffers.course_code_buf), stdin))
+        if (!ui_handle_input(&calculator->courses, calculator->input_buffers.course_code_buf,
+                             sizeof(calculator->input_buffers.course_code_buf)))
             break;
-        if (!ui_handle_long_input(calculator->input_buffers.course_code_buf))
-            break;
+
         calculator->input_buffers
             .course_code_buf[strcspn(calculator->input_buffers.course_code_buf, "\n")] = '\0';
 

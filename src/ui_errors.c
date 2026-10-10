@@ -55,6 +55,11 @@ void ui_print_error(ui_error_t err) {
     }
 }
 
+void flush_stdin(void) {
+    int c_flush;
+    while ((c_flush = getchar()) != '\n' && c_flush != EOF);
+}
+
 bool ui_handle_long_input(const char *buf) {
     if (!strchr(buf, '\n')) {
         ui_print_error(UI_ERR_INPUT_TOO_LONG);

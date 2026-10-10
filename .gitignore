@@ -63,3 +63,4 @@ Makefile
 # User-provided data files
 data/*
 !data/.gitkeep
+tests/*

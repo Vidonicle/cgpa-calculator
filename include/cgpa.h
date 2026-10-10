@@ -52,7 +52,6 @@ typedef struct {
 
 typedef struct {
     input_buffers_t input_buffers;
-
     course_list_t courses;
 } calculator_t;
 
@@ -187,10 +186,5 @@ bool validate_letter_grade(const char *letter_grade, float course_weight);
  * Tears down the course list
  */
 void teardown(course_list_t *course);
-
-/*
- * Flushes stdin
- */
-void flush_stdin(void);
 
 #endif /* CGPA_H */
