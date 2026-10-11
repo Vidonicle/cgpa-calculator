@@ -11,7 +11,6 @@
  * Author: Arul Rao (Vidonicle)
  * License: MIT
  ***********************************/
-#define _POSIX_C_SOURCE 200809L
 
 #include "cgpa.h"
 
@@ -206,12 +205,8 @@ void display_grades(course_list_t *courses) {
     printf(SEPERATOR1 "  Course Code  Weight  Grade  Credits\n");
     printf(" -------------------------------------\n");
 
-    int i = 1;
     for (coursenode_t *curr = courses->sentinel.next; curr != &(courses->sentinel);
          curr = curr->next) {
-        int grade_w = (curr->letter_grade[1] == '\0') ? 4 : 5;
-        int credit_w = (curr->letter_grade[1] == '\0') ? 9 : 8;
-
         printf("  %-12s %4.2f    %-5s  %4.2f\n", curr->course_code, curr->course_weight,
                curr->letter_grade, curr->credits_earned);
 
@@ -220,7 +215,6 @@ void display_grades(course_list_t *courses) {
             accum_credits += curr->credits_earned;
             accum_weight += curr->course_weight;
         }
-        i++;
     }
 
     float cgpa = accum_weight > 0 ? accum_credits / accum_weight : 0.0f;

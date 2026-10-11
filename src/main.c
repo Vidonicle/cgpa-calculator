@@ -11,6 +11,7 @@
  * Author: Arul Rao (Vidonicle)
  * License: MIT
  ***********************************/
+#define _POSIX_C_SOURCE 200809L
 
 #include <ctype.h>
 #include <errno.h>
@@ -88,73 +89,71 @@ bool ui_handle_input(course_list_t *courses, char *buf, size_t size) {
     return ui_handle_long_input(buf);
 }
 
+FILE *open_file(const char *executable, const char *filename) {
+    char exec_path[PATH_MAX];
+
+    if (!realpath(executable, exec_path))
+        return NULL;
+
+    char *slash = strrchr(exec_path, '/');
+
+    if (!slash)
+        return NULL;
+
+    *slash = '\0';
+
+    char pathbuf[PATH_MAX];
+
+    int written = snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, filename);
+
+    if (written < 0 || (size_t)written >= sizeof(pathbuf))
+        return NULL;
+
+    return fopen(pathbuf, "r");
+}
+
 void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
-    bool load_file = true;
     FILE *fptr = NULL;
 
     if (argc == 2) {
-        char exec_path[PATH_MAX];
-        if (realpath(argv[0], exec_path)) {
-            char *slash = strrchr(exec_path, '/');
-            if (slash) {
-                *slash = '\0';  // strip executable name
-            }
+        fptr = open_file(argv[0], argv[1]);
 
-            char pathbuf[PATH_MAX];
-            snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path, argv[1]);
-            fptr = fopen(pathbuf, "r");
-            if (!fptr) {
-                ui_print_error(UI_ERR_FILE_NOT_FOUND);
-                return;
-            }
+        if (!fptr) {
+            ui_print_error(UI_ERR_FILE_NOT_FOUND);
+            return;
         }
     } else {
         while (true) {
-            printf(SEPERATOR1 "\n  Would you like to load calculator->courses from file? (Y/n): ");
+            printf(SEPERATOR1 "\n  Would you like to load courses from file? (Y/n): ");
 
-            load_file = ui_handle_input(&calculator->courses, calculator->input_buffers.menu_buf,
-                                        sizeof(calculator->input_buffers.menu_buf));
+            if (!ui_handle_input(&calculator->courses, calculator->input_buffers.menu_buf,
+                                 sizeof(calculator->input_buffers.menu_buf)))
+                continue;
 
             calculator->input_buffers.menu_buf[strcspn(calculator->input_buffers.menu_buf, "\n")] =
                 '\0';
-            calculator->input_buffers.menu_buf[0] =
-                (char)tolower((unsigned char)calculator->input_buffers.menu_buf[0]);
 
-            if (calculator->input_buffers.menu_buf[0] == 'n')
-                load_file = false;
-
-            if (load_file) {
-                // File parsing loop
-                printf(SEPERATOR1 "\n  Please enter the name of your file: ");
-
-                if (!ui_handle_input(&calculator->courses, calculator->input_buffers.filename,
-                                     sizeof(calculator->input_buffers.filename)))
-                    continue;
-
-                calculator->input_buffers
-                    .filename[strcspn(calculator->input_buffers.filename, "\n")] = '\0';
-                if (calculator->input_buffers.filename[0] == '\0')
-                    continue;
-
-                // Locate file in intended folder
-                char exec_path[PATH_MAX];
-                if (realpath(argv[0], exec_path)) {
-                    char *slash = strrchr(exec_path, '/');
-                    if (slash) {
-                        *slash = '\0';  // strip executable name
-                    }
-                    char pathbuf[PATH_MAX];
-                    snprintf(pathbuf, sizeof(pathbuf), "%s/../data/%s", exec_path,
-                             calculator->input_buffers.filename);
-                    fptr = fopen(pathbuf, "r");
-                }
-            } else
+            if (tolower((unsigned char)calculator->input_buffers.menu_buf[0]) == 'n')
                 return;
 
-            if (!fptr) {
-                ui_print_error(UI_ERR_FILE_NOT_FOUND);
-            } else
+            printf(SEPERATOR1 "\n  Please enter the name of your file: ");
+
+            if (!ui_handle_input(&calculator->courses, calculator->input_buffers.filename,
+                                 sizeof(calculator->input_buffers.filename)))
+                continue;
+
+            calculator->input_buffers.filename[strcspn(calculator->input_buffers.filename, "\n")] =
+                '\0';
+
+            if (calculator->input_buffers.filename[0] == '\0')
+                continue;
+
+            fptr = open_file(argv[0], calculator->input_buffers.filename);
+
+            if (fptr)
                 break;
+
+            ui_print_error(UI_ERR_FILE_NOT_FOUND);
         }
     }
 
@@ -163,12 +162,11 @@ void menu_load_from_file(calculator_t *calculator, int argc, char *argv[]) {
         ui_print_error(UI_ERR_OOM);
         teardown(&calculator->courses);
         exit(EXIT_FAILURE);
-    } else {
-        printf(SEPERATOR1 "\n  Load from file successful!\n");
-        fclose(fptr);
     }
-}
 
+    fclose(fptr);
+    printf(SEPERATOR1 "\n  Load from file successful!\n");
+}
 menu_option_t menu_get_choice(calculator_t *calculator) {
     if (!ui_handle_input(&calculator->courses, calculator->input_buffers.menu_buf,
                          sizeof(calculator->input_buffers.menu_buf)))
